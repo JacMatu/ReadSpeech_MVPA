@@ -1,0 +1,29 @@
+# Check https://citation-file-format.github.io/
+# and the schema doc https://github.com/citation-file-format/citation-file-format/blob/main/schema-guide.md
+# for more info
+
+cff-version: 1.2.0
+
+title: "Octache"
+
+version: 0.1.0
+
+abstract: mashlab
+
+message: "If you use this software, please cite it as below."
+
+repository-code: "https://github.com/Remi-Gau/Octache"
+
+contact:
+  - email: remi.gau@gmail.com
+  - family-names: Gau
+    given-names: Rémi
+
+authors:
+  - family-names: Gau
+    given-names: Rémi
+
+license: MIT
+
+keywords:
+  - mashlab

@@ -1,0 +1,14 @@
+# linting
+miss_hit
+pre-commit
+
+# doc
+Sphinx
+sphinxcontrib-matlabdomain
+sphinx_rtd_theme
+sphinx-copybutton
+urllib3==1.26.15
+
+# notebooks
+octave_kernel
+jupyterlab

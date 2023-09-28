@@ -1,0 +1,13 @@
+function contrasts  = defaultContrastsStructure()
+  %
+
+  % (C) Copyright 2022 bidspm developers
+
+  contrasts =  struct('nodeName', '', ...
+                      'name', {{''}}, ...
+                      'useMask', false(), ...
+                      'MC', 'FWE', ... % FWE, none, FDR
+                      'p', 0.05, ...
+                      'k', 0);
+
+end

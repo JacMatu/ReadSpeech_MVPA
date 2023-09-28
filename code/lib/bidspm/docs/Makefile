@@ -1,0 +1,56 @@
+# TODO make more general to use the local matlab version
+MATLAB = /usr/local/MATLAB/R2018a/bin/matlab
+ARG    = -nodisplay -nosplash -nodesktop
+
+define BROWSER_PYSCRIPT
+import os, webbrowser, sys
+
+from urllib.request import pathname2url
+
+webbrowser.open("file://" + pathname2url(os.path.abspath(sys.argv[1])))
+endef
+export BROWSER_PYSCRIPT
+
+BROWSER := python -c "$$BROWSER_PYSCRIPT"
+
+# You can set these variables from the command line, and also
+# from the environment for the first two.
+SPHINXOPTS    ?=
+SPHINXBUILD   ?= sphinx-build
+SOURCEDIR     = source
+BUILDDIR      = build
+
+# Put it first so that "make" without argument is like "make help".
+help:
+	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+.PHONY: help Makefile bidspm-manual.pdf
+
+# Catch-all target: route all unknown targets to Sphinx using the new
+# "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
+%: Makefile
+	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+clean:
+	rm -rf $(BUILDDIR)
+	rm -f bidspm-manual.pdf
+
+view:
+	$(BROWSER) build/html/index.html
+
+bidspm-manual.pdf:
+	bash create_manual.sh
+
+boilerplate:
+	$(MATLAB) $(ARG) -r "print_boilerplate; exit()"
+	rm -fr reports
+
+clean_default_options:
+	$(MATLAB) $(ARG) -r "print_default_options; exit()"
+	sed -i "s@/home/remi/matlab/SPM/spm12@spm12_dir@g" source/default_options.m
+	sed -i "s@/home/remi/github/bidspm/docs/derivatives@derivatives@g" source/default_options.m
+	sed -i "s@/home/remi/github/bidspm/docs/jobs@jobs@g" source/default_options.m
+	sed -i "s@\t@ @g" source/default_options.m
+
+default_mapping:
+	$(MATLAB) $(ARG) -r "print_spm_to_bids_mapping; exit()"

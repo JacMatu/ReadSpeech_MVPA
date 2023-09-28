@@ -1,0 +1,22 @@
+.. This (-*- rst -*-) format file contains commonly used link targets
+   and name substitutions.  It may be included in many files,
+   therefore it should only contain link targets and name
+   substitutions.  Try grepping for "^\.\. _" to find plausible
+   candidates for this list.  
+
+.. NOTE: reST targets are
+   __not_case_sensitive__, so only one target definition is needed for
+   nipy, NIPY, Nipy, etc...
+
+.. _`SPM`: http://www.fil.ion.ucl.ac.uk/spm
+.. _`marsbar hbm abstract`: https://matthew.dynevor.org/research/abstracts/marsbar/marsbar_abstract.pdf
+.. _`MarsBaR project download page`: https://github.com/marsbar-toolbox/marsbar/releases
+.. _`MarsBaR example data download page`: https://github.com/marsbar-toolbox/marsbar-example-data/releases
+.. _`MarsBaR AAL download page`: https://github.com/marsbar-toolbox/marsbar-aal-rois/releases
+.. _`m2html`: http://www.artefact.tk/software/matlab/m2html/
+.. _`MarsBaR users mailing list`: https://marsbar.discourse.group
+.. _`MarsBaR users Discourse site`: https://marsbar.discourse.group
+.. _`SourceForge`: http://sourceforge.net
+.. _`mricro`: http://www.mricro.com/
+
+.. _`marsbar github`: http://github.com/matthew-brett/marsbar

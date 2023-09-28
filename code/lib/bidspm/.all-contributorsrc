@@ -1,0 +1,228 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "contributorsSortAlphabetically": true,
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "OliColli",
+      "name": "Olivier Collignon",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/55407947?v=4",
+      "profile": "https://cpplab.be",
+      "contributions": [
+        "code",
+        "design",
+        "doc",
+        "financial",
+        "fundingFinding"
+      ]
+    },
+    {
+      "login": "anege",
+      "name": "Ane Gurtubay",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/50317099?v=4",
+      "profile": "https://github.com/anege",
+      "contributions": [
+        "code",
+        "design"
+      ]
+    },
+    {
+      "login": "mohmdrezk",
+      "name": "Mohamed Rezk",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/9597815?v=4",
+      "profile": "https://github.com/mohmdrezk",
+      "contributions": [
+        "code",
+        "review",
+        "design"
+      ]
+    },
+    {
+      "login": "marcobarilari",
+      "name": "Marco Barilari",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/38101692?v=4",
+      "profile": "https://github.com/marcobarilari",
+      "contributions": [
+        "code",
+        "design",
+        "review",
+        "doc",
+        "test",
+        "bug",
+        "userTesting",
+        "ideas"
+      ]
+    },
+    {
+      "login": "Remi-Gau",
+      "name": "Remi Gau",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/6961185?v=4",
+      "profile": "https://remi-gau.github.io/",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas",
+        "infra",
+        "design",
+        "review",
+        "bug",
+        "test",
+        "content",
+        "design",
+        "tutorial",
+        "maintenance"
+      ]
+    },
+    {
+      "login": "fedefalag",
+      "name": "Federica Falagiarda",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/50373329?v=4",
+      "profile": "https://github.com/fedefalag",
+      "contributions": [
+        "bug",
+        "userTesting"
+      ]
+    },
+    {
+      "login": "CerenB",
+      "name": "Ceren Battal",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/10451654?v=4",
+      "profile": "https://github.com/CerenB",
+      "contributions": [
+        "bug",
+        "content",
+        "doc",
+        "code",
+        "review",
+        "userTesting"
+      ]
+    },
+    {
+      "login": "mwmaclean",
+      "name": "Michèle MacLean",
+      "avatar_url": "https://avatars.githubusercontent.com/u/54547865?v=4",
+      "profile": "https://github.com/mwmaclean",
+      "contributions": [
+        "code",
+        "ideas",
+        "userTesting",
+        "bug"
+      ]
+    },
+    {
+      "login": "fcerpe",
+      "name": "Filippo Cerpelloni",
+      "avatar_url": "https://avatars.githubusercontent.com/u/73432853?v=4",
+      "profile": "https://github.com/fcerpe",
+      "contributions": [
+        "bug",
+        "test",
+        "userTesting"
+      ]
+    },
+    {
+      "login": "iqrashahzad14",
+      "name": "Iqra Shahzad",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75671348?v=4",
+      "profile": "https://github.com/iqrashahzad14",
+      "contributions": [
+        "bug",
+        "doc",
+        "question",
+        "review",
+        "userTesting"
+      ]
+    },
+    {
+      "login": "mcgnunes",
+      "name": "Márcia Nunes",
+      "avatar_url": "https://avatars.githubusercontent.com/u/98760858?v=4",
+      "profile": "https://github.com/mcgnunes",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "JeanneCaronGuyon",
+      "name": "Jeanne Caron-Guyon",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8718798?v=4",
+      "profile": "https://github.com/JeanneCaronGuyon",
+      "contributions": [
+        "bug",
+        "example",
+        "userTesting",
+        "question",
+        "tutorial"
+      ]
+    },
+    {
+      "login": "christine0903",
+      "name": "Christine Chouinard-Leclaire",
+      "avatar_url": "https://avatars.githubusercontent.com/u/70207207?v=4",
+      "profile": "https://github.com/christine0903",
+      "contributions": [
+        "ideas",
+        "bug"
+      ]
+    },
+    {
+      "login": "yyang1234",
+      "name": "Ying Yang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/59220868?v=4",
+      "profile": "https://github.com/yyang1234",
+      "contributions": [
+        "bug",
+        "userTesting"
+      ]
+    },
+    {
+      "login": "Manon-56",
+      "name": "Manon Chateaux",
+      "avatar_url": "https://avatars.githubusercontent.com/u/102988114?v=4",
+      "profile": "https://github.com/Manon-56",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "SteMat9787",
+      "name": "Stefania Mattioni",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50380749?v=4",
+      "profile": "https://github.com/SteMat9787",
+      "contributions": [
+        "bug",
+        "userTesting"
+      ]
+    },
+    {
+      "login": "avanaudenhaege",
+      "name": "Alice Van Audenhaege",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75271651?v=4",
+      "profile": "https://github.com/avanaudenhaege",
+      "contributions": [
+        "bug",
+        "userTesting"
+      ]
+    },
+    {
+      "login": "JacMatu",
+      "name": "Jacek Matuszewski",
+      "avatar_url": "https://avatars.githubusercontent.com/u/94451915?v=4",
+      "profile": "https://github.com/JacMatu",
+      "contributions": [
+        "bug",
+        "userTesting"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "bidspm",
+  "projectOwner": "cpp-lln-lab",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true,
+  "commitConvention": "angular"
+}

@@ -1,0 +1,8 @@
+tree
+curl
+wget
+unzip
+octave
+liboctave-dev
+gnuplot
+ghostscript

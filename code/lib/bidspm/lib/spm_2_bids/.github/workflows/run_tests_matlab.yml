@@ -1,0 +1,62 @@
+---
+name: tests and coverage with matlab
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+
+  push:
+    branches:
+    - master
+    - dev
+
+  pull_request:
+    branches: ['*']
+
+jobs:
+
+  build:
+
+    strategy:
+      matrix:
+        version: [R2021a, R2021b, R2022a, R2022b]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+      fail-fast: false  # Don't cancel all jobs if one fails
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+
+    - name: Install MATLAB
+      uses: matlab-actions/setup-matlab@v1.2.4
+      with:
+        release: ${{ matrix.version }}
+
+    - name: Clone spm_2_bids
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+        fetch-depth: 2
+
+    - name: Install Moxunit and MOcov
+      run: |
+        git clone https://github.com/MOxUnit/MOxUnit.git --depth 1
+        git clone https://github.com/MOcov/MOcov.git --depth 1
+
+    - name: get bids-matlab and JSONio
+      run: make install_dev
+
+    - name: Run commands
+      uses: matlab-actions/run-command@v1.2.0
+      with:
+        command: cd(fullfile(getenv('GITHUB_WORKSPACE'), '.github', 'workflows')); run tests_matlab;
+
+    - name: Code coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: coverage.xml
+        flags: ${{ matrix.os }}_matlab-${{ matrix.version }}
+        name: codecov-umbrella
+        fail_ci_if_error: true

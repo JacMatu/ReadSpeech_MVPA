@@ -26,6 +26,7 @@ opt.cosmomvpa.funcFWHM = 2; %changed from 0
 opt.cosmomvpa.space = 'IXI549Space'; %preproc/normalisation space
 %opt.cosmomvpa.ROIlabel = 'VWFAwithinmodal'; %changed from 'MT' other labels to test: aVWFA, cVWFA, pVWFA, perVWFA
 opt.cosmomvpa.ROIlabel = 'cVWFA';
+%opt.cosmomvpa.ROIlabel = 'visfatlas';
 
 % opt.cosmomvpa.ratioToKeep = [ 3600 ];
 % 0-1 = portion of voxels in the ROIs 
@@ -57,11 +58,22 @@ opt.cosmomvpa.nbTrialRepetition = 1; % ???
 
 opt.cosmomvpa.nbRun = 6; %changed from 5
 
-%% ReadSpeech
+% decoding info (modalities, conditions to decode, labels)
+opt.cosmomvpa.modalities = {'reading', 'speech'}; %does this have to be compatibile with BIDS models/conditions?
 
+% define conditions to test based on labels
+opt.cosmomvpa.conditions = {'WordPseudoword','WordControl', 'PseudowordControl'};
+%opt.cosmomvpa.conditions = {'WordPseudowordControl'}; %start slowly with one multiclass
+
+opt.cosmomvpa.labels = {'reading word', 'reading pseudoword', 'reading control', ...
+    'speech word', 'speech pseudoword', 'speech control'};
+
+%% Setup output dirs for MVPA
+
+opt.taskName = 'MultimodalReadSpeech';
 opt.dir.statsTask = 'task-MultimodalReadSpeech_space-IXI549Space_FWHM-2_node-mvpa6betas';
 
-opt.cosmomvpa.pathOutput = fullfile(opt.dir.derivatives, 'cosmo-mvpa', opt.dir.statsTask,'unimodal');
+opt.cosmomvpa.pathOutput = fullfile(opt.dir.derivatives, 'cosmo-mvpa', opt.dir.statsTask,opt.cosmomvpa.ROIlabel,'unimodal');
 
 if ~exist(opt.cosmomvpa.pathOutput, 'dir')
     mkdir(opt.cosmomvpa.pathOutput)
@@ -80,39 +92,32 @@ if ~exist(fullfile(opt.cosmomvpa.pathOutput, 'confusion_matrices'), 'dir')
 end
 
 
-opt.taskName = 'MultimodalReadSpeech';
+%% Pick your subjects
 
-%opt.subjects = {'blind15'}; %testing one for each group first? 
+% TEST SUB
+opt.subjects = {'blind15'}; %testing one for each group first? 
+
+% BLIND SUBJECTS
 %opt.subjects = {'blind01', 'blind02','blind03','blind03','blind04','blind05',...
 %    'blind06','blind07','blind08','blind09','blind10','blind11','blind12',...
 %    'blind13','blind14','blind15','blind16','blind17','blind18','blind19','blind20'}; 
  
+% SIGHTED SUBJECTS
 %opt.subjects = {'sighted01', 'sighted02','sighted03','sighted03','sighted04','sighted05',...
 %    'sighted06','sighted07','sighted08','sighted09','sighted10','sighted11','sighted12',...
 %    'sighted13','sighted14','sighted15','sighted16','sighted17','sighted18','sighted19','sighted20'}; 
 
-opt.subjects = {'blind01', 'blind02','blind03','blind03','blind04','blind05',...
-    'blind06','blind07','blind08','blind09','blind10','blind11','blind12',...
-    'blind13','blind14','blind15','blind16','blind17','blind18','blind19','blind20', ...
-    'sighted01', 'sighted02','sighted03','sighted03','sighted04','sighted05',...
-    'sighted06','sighted07','sighted08','sighted09','sighted10','sighted11','sighted12',...
-    'sighted13','sighted14','sighted15','sighted16','sighted17','sighted18','sighted19','sighted20'};
-
-
-% Try to query them from stats? 
-
-BIDS = bids.layout(opt.dir.stats, 'use_schema', false);
+%ALL SUBJECTS
+%opt.subjects = {'blind01', 'blind02','blind03','blind03','blind04','blind05',...
+%    'blind06','blind07','blind08','blind09','blind10','blind11','blind12',...
+%    'blind13','blind14','blind15','blind16','blind17','blind18','blind19','blind20', ...
+%    'sighted01', 'sighted02','sighted03','sighted03','sighted04','sighted05',...
+%    'sighted06','sighted07','sighted08','sighted09','sighted10','sighted11','sighted12',...
+%    'sighted13','sighted14','sighted15','sighted16','sighted17','sighted18','sighted19','sighted20'};
 
 
 
-opt.cosmomvpa.modalities = {'reading', 'speech'}; %does this have to be compatibile with BIDS models/conditions?
 
-% define conditions to test based on labels
-opt.cosmomvpa.conditions = {'WordPseudoword','WordControl', 'PseudowordControl'};
-%opt.cosmomvpa.conditions = {'WordPseudowordControl'}; %start slowly with one multiclass
-
-opt.cosmomvpa.labels = {'reading word', 'reading pseudoword', 'reading control', ...
-    'speech word', 'speech pseudoword', 'speech control'};
 %% RUN mvpa analyses
 
 % set which type of ffx results you want to use
@@ -122,30 +127,8 @@ opt.cosmomvpa.ffxResults = {'beta'};%{'beta'};
 cosmomvpaRoiCrossValidation_ReadSpeech(opt) % ADJUSTED?
 
 
-
 % set which type of ffx results you want to use
 %opt.cosmomvpa.ffxResults = {'tmap'};
+%cosmomvpaRoiCrossValidation_ReadSpeech(opt) % ADJUSTED?
 
-%cosmomvpaRoiCrossValidation_ReadSpeech(opt) % ADJUST IT? 
-
-
-
-
-%% How to run group-level statistics (Stelzer)
-% https://www.cosmomvpa.org/faq.html
-
-% TFCE T tests are "default" in cosmo?
-
-% support for either standard permutation test, or the method by Stelzer et al. (2012). 
-% To use the Stelzer approach, the user has to generate null datasets themselves. 
-% cosmo randomize targets can be used for this, but requires using a for-loop to 
-% generate multiple null datasets.
-
-% It's in Marco's code! Nonparametric_stats.m (update repo) 
-% condition = modality
-
-%it's long, makes sense to have another script for that 
-% % number of iterations for group level null distribution
-% nbIter = 100000;
-
-% Check if null distribution is not made of 0s! [group = put small itereation number]
+%% After you are done, don't forget to calculate P values with nonParametric 

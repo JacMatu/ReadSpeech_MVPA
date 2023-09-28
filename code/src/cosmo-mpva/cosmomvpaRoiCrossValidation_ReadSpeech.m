@@ -17,15 +17,24 @@ for iSub = 1:numel(opt.subjects)
     %Grab the ROIs based on opt.cosmomvpa.ROIlabel!                              
     BIDS = bids.layout(opt.dir.rois, ... 
                        'use_schema', false);
-
-    opt.query = [];
-    opt.query.sub = opt.subjects{iSub};
-    opt.query.modality = 'roi';
-    opt.query.suffix = 'mask';
-    %opt.query.radius = opt.cosmomvpa.roiDimension;
-    opt.query.label = opt.cosmomvpa.ROIlabel;
-    opt.query.space = opt.cosmomvpa.space;
-    
+                   
+   % querry ROIs based on atlas or spheres                
+   if strcmp(opt.cosmomvpa.ROIlabel, 'visfatlas')
+        opt.query = [];
+        opt.query.sub = opt.subjects{iSub};
+        opt.query.modality = 'roi';
+        opt.query.suffix = 'mask';
+        opt.query.atlas = opt.cosmomvpa.ROIlabel;
+        opt.query.space = 'MNI';
+   else
+        opt.query = [];
+        opt.query.sub = opt.subjects{iSub};
+        opt.query.modality = 'roi';
+        opt.query.suffix = 'mask';
+        %opt.query.radius = opt.cosmomvpa.roiDimension;
+        opt.query.label = opt.cosmomvpa.ROIlabel;
+        opt.query.space = opt.cosmomvpa.space;
+    end
     opt.cosmomvpa.roiFileNames = bids.query(BIDS, 'data', ...
                                             opt.query);
     
@@ -129,7 +138,12 @@ for iSub = 1:numel(opt.subjects)
                 
                 bidspart = split(roiName, "_");
                 
-                label = split(bidspart(3), '-');
+                % atlas and spheres have LABEL in different part of name
+                if strcmp(opt.cosmomvpa.ROIlabel, 'visfatlas')
+                    label = split(bidspart(5), '-');
+                else
+                    label = split(bidspart(3), '-');
+                end
                 
                 roiName = label{2};
                 

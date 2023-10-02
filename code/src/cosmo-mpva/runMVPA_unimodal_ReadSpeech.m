@@ -12,8 +12,7 @@ bidspm();
 opt.dir.root = fullfile(this_dir, '..', '..', '..');
 opt.dir.derivatives = fullfile(opt.dir.root, 'outputs', 'derivatives');
 opt.dir.stats = fullfile(opt.dir.root, 'outputs', 'derivatives', 'bidspm-stats');
-opt.dir.rois = fullfile(opt.dir.root, 'outputs', 'derivatives', 'bidspm-roi'); %changed from cpp_roi
-%opt.dir.mvpa = fullfile(opt.dir.derivatives, 'cosmo-mvpa');
+opt.dir.rois = fullfile(opt.dir.root, 'outputs', 'derivatives', 'bidspm-roi'); 
 opt.dir.mvpa = fullfile(opt.dir.derivatives, 'cosmo-mvpa');
 
 if ~exist(opt.dir.mvpa, 'dir')
@@ -25,8 +24,8 @@ end
 opt.cosmomvpa.funcFWHM = 2; %changed from 0
 opt.cosmomvpa.space = 'IXI549Space'; %preproc/normalisation space
 %opt.cosmomvpa.ROIlabel = 'VWFAwithinmodal'; %changed from 'MT' other labels to test: aVWFA, cVWFA, pVWFA, perVWFA
-opt.cosmomvpa.ROIlabel = 'cVWFA';
-%opt.cosmomvpa.ROIlabel = 'visfatlas';
+%opt.cosmomvpa.ROIlabel = 'cVWFA';
+opt.cosmomvpa.ROIlabel = 'visfatlas';
 
 % opt.cosmomvpa.ratioToKeep = [ 3600 ];
 % 0-1 = portion of voxels in the ROIs 
@@ -95,7 +94,7 @@ end
 %% Pick your subjects
 
 % TEST SUB
-opt.subjects = {'blind15'}; %testing one for each group first? 
+%opt.subjects = {'blind15'}; %testing one for each group first? 
 
 % BLIND SUBJECTS
 %opt.subjects = {'blind01', 'blind02','blind03','blind03','blind04','blind05',...
@@ -108,12 +107,12 @@ opt.subjects = {'blind15'}; %testing one for each group first?
 %    'sighted13','sighted14','sighted15','sighted16','sighted17','sighted18','sighted19','sighted20'}; 
 
 %ALL SUBJECTS
-%opt.subjects = {'blind01', 'blind02','blind03','blind03','blind04','blind05',...
-%    'blind06','blind07','blind08','blind09','blind10','blind11','blind12',...
-%    'blind13','blind14','blind15','blind16','blind17','blind18','blind19','blind20', ...
-%    'sighted01', 'sighted02','sighted03','sighted03','sighted04','sighted05',...
-%    'sighted06','sighted07','sighted08','sighted09','sighted10','sighted11','sighted12',...
-%    'sighted13','sighted14','sighted15','sighted16','sighted17','sighted18','sighted19','sighted20'};
+opt.subjects = {'blind01', 'blind02','blind03','blind03','blind04','blind05',...
+    'blind06','blind07','blind08','blind09','blind10','blind11','blind12',...
+    'blind13','blind14','blind15','blind16','blind17','blind18','blind19','blind20', ...
+    'sighted01', 'sighted02','sighted03','sighted03','sighted04','sighted05',...
+    'sighted06','sighted07','sighted08','sighted09','sighted10','sighted11','sighted12',...
+    'sighted13','sighted14','sighted15','sighted16','sighted17','sighted18','sighted19','sighted20'};
 
 
 
@@ -126,9 +125,11 @@ opt.cosmomvpa.ffxResults = {'beta'};%{'beta'};
 
 cosmomvpaRoiCrossValidation_ReadSpeech(opt) % ADJUSTED?
 
-
 % set which type of ffx results you want to use
 %opt.cosmomvpa.ffxResults = {'tmap'};
 %cosmomvpaRoiCrossValidation_ReadSpeech(opt) % ADJUSTED?
+
+
+disp('Unimodal MVPA done!')
 
 %% After you are done, don't forget to calculate P values with nonParametric 

@@ -32,18 +32,18 @@ clear;
 tic
 
 %decodTitle = 'spatialFrequencies';
-decodTitle = 'VWFAwithinmodal';
+decodTitle = 'visfatlas';
 
 decodingModality = {'reading','speech'}; %sensory modalities
 
 decodingConditions = {'WordPseudoword', 'WordControl','PseudowordControl'};
 
-roiList = {'lexVWFA', 'perVWFA'};
+roiList = {'pOTS', 'IOS','v1combined'}; %based on visfatlas
 
-group = 'sighted'; %blind sighted
+group = 'blind'; %blind sighted
 mvpa = 'unimodal';
  
-%subject numbers
+%subject numbers to be pasted with 'sub-' and chosen group, i.e. 'sub-blind01'
 subList = {'01', '02','03','04','05',...
     '06','07','08','09','10','11','12',...
     '13','14','15','16','17','18','19','20'}; 
@@ -52,7 +52,9 @@ subList = {'01', '02','03','04','05',...
 
 subList = strcat(group, subList);
 
-nbRowsInAccu = 12; % HARDCODED: NB ROI * NB MODALITIES OR CONDITIONS
+%nbRowsInAccu = 12; % HARDCODED: NB ROI * NB MODALITIES * CONDITIONS
+nbRowsInAccu = length(decodingModality) * length(decodingConditions) * length(roiList);
+
 
 im = 'beta'; %'tmap', 'beta'
 
@@ -62,15 +64,15 @@ featureRatio = 0.8;
 
 %voxNb = '100';
 % number of iterations for group level null distribution
-nbIter = 100000;
-%nbIter = 10;
+%nbIter = 100000;
+nbIter = 100; %just test if p values are different from 0
 
 % Load acuu
 
 
 
 %should grab 40 files, 20 blind 20 sighted
-accuFile = dir(['/Volumes/Slim_Reaper/Projects/Language_MVPA/outputs/derivatives/cosmo-mvpa/task-MultimodalReadSpeech_space-IXI549Space_FWHM-2_node-mvpa6betas/',mvpa,'/permutations/*.mat']);
+accuFile = dir(['/Volumes/Slim_Reaper/Projects/Language_MVPA/outputs/derivatives/cosmo-mvpa/task-MultimodalReadSpeech_space-IXI549Space_FWHM-2_node-mvpa6betas/',decodTitle,'/',mvpa,'/permutations/*.mat']);
 
 
 %This is "hardcoded", assumes that only 1 MVPA output per subject is in the file, grabs all and slices it in half into blind or sighted, 

@@ -32,7 +32,9 @@ groups <- c('blind', 'sighted') # blind or sighted
 cosmo_results <- '/Volumes/Slim_Reaper/Projects/Language_MVPA/outputs/derivatives/cosmo-mvpa'
 #task_audVis <-  paste('task-audVisMotSpatialFreq_space-MNI152NLin2009cAsym_FWHM-', as.character(FWHM), '_node-mvpaBlockAverage', sep ='')
 task_ReadSpeech <- paste0('task-MultimodalReadSpeech_space-IXI549Space_FWHM-',as.character(FWHM),'_node-mvpa6betas')
-cosmo_results_path_ReadSpeech <- paste(cosmo_results, task_ReadSpeech, 'unimodal','accuracy', sep ='/')
+decoding_label <- 'visfatlas'
+cosmo_results_path_ReadSpeech <- paste(cosmo_results, task_ReadSpeech, decoding_label,
+                                       'unimodal','accuracy', sep ='/')
 
 #namePattern <- paste('sub-',group,'.*_label-VWFAwithinmodal_.*\\.csv$', sep = '')
 ```
@@ -45,7 +47,7 @@ for(g in seq_along(groups)) {
     #Set name pattern and get the files
     #namePattern <- paste('sub-',groups[g],'.*_label-VWFAwithinmodal_.*\\.csv$', sep = '')
     #namePattern <- paste('sub-',groups[g],'.*_label-VWFAcrossmodal_.*\\.csv$', sep = '')
-    namePattern <- paste('sub-',groups[g],'.*_label-cVWFA_.*\\.csv$', sep = '')
+    namePattern <- paste('sub-',groups[g],'.*_label-visfatlas_.*\\.csv$', sep = '')
     
     allfiles_ReadSpeech <- list.files(cosmo_results_path_ReadSpeech, pattern = namePattern)
     

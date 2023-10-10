@@ -31,8 +31,8 @@ for iSub = 1:numel(opt.subjects)
         opt.query.sub = opt.subjects{iSub};
         opt.query.modality = 'roi';
         opt.query.suffix = 'mask';
-        %opt.query.radius = opt.cosmomvpa.roiDimension;
-        opt.query.label = opt.cosmomvpa.ROIlabel;
+        opt.query.radius = [num2str(opt.cosmomvpa.roiDimension),'mm'];
+        %opt.query.label = opt.cosmomvpa.ROIlabel;
         opt.query.space = opt.cosmomvpa.space;
     end
     opt.cosmomvpa.roiFileNames = bids.query(BIDS, 'data', ...

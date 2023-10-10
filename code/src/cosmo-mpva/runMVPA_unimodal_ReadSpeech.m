@@ -23,9 +23,14 @@ end
 
 opt.cosmomvpa.funcFWHM = 2; %changed from 0
 opt.cosmomvpa.space = 'IXI549Space'; %preproc/normalisation space
-%opt.cosmomvpa.ROIlabel = 'VWFAwithinmodal'; %changed from 'MT' other labels to test: aVWFA, cVWFA, pVWFA, perVWFA
-%opt.cosmomvpa.ROIlabel = 'cVWFA';
-opt.cosmomvpa.ROIlabel = 'visfatlas';
+opt.cosmomvpa.ROIlabel = 'cVWFA'; %changed from 'MT' other labels to test: aVWFA, cVWFA, pVWFA, perVWFA
+%opt.cosmomvpa.ROIlabel = 'LexPerVWFA';
+%opt.cosmomvpa.ROIlabel = 'visfatlas';
+
+% set which ROI sphere dimension (mm) to use
+%opt.cosmomvpa.roiDimension = [ 7 ]; % specify different sphere radiuses if you have them, e.g. [7,10,15...]
+opt.cosmomvpa.roiDimension = [ 10 ];
+
 
 % opt.cosmomvpa.ratioToKeep = [ 3600 ];
 % 0-1 = portion of voxels in the ROIs 
@@ -46,10 +51,6 @@ opt.cosmomvpa.child_classifier = @cosmo_classify_libsvm;
 %opt.cosmomvpa.child_classifier = @cosmo_classify_lda;
 
 opt.cosmomvpa.feature_selector = @cosmo_anova_feature_selector;
-
-% set which ROI sphere dimension (mm) to use
-%opt.cosmomvpa.roiDimension = [ 7 ]; % specify different sphere radiuses if you have them, e.g. [7,10,15...]
-opt.cosmomvpa.roiDimension = [ 10 ];
 
 
 % design info

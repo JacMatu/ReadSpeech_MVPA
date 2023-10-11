@@ -25,15 +25,16 @@ Set variables
 
 ffx <- 'beta' # beta tmap
 featRatio <- '0.8'
-space <-'IXI549Space'
+#space <-'IXI549Space'
 FWHM <- 2
 groups <- c('blind', 'sighted') # blind or sighted
 # set te path to the task folder
 cosmo_results <- '/Volumes/Slim_Reaper/Projects/Language_MVPA/outputs/derivatives/cosmo-mvpa'
 #task_audVis <-  paste('task-audVisMotSpatialFreq_space-MNI152NLin2009cAsym_FWHM-', as.character(FWHM), '_node-mvpaBlockAverage', sep ='')
 task_ReadSpeech <- paste0('task-MultimodalReadSpeech_space-IXI549Space_FWHM-',as.character(FWHM),'_node-mvpa6betas')
-decoding_label <- 'visfatlas'
-cosmo_results_path_ReadSpeech <- paste(cosmo_results, task_ReadSpeech, decoding_label,
+
+decoding_label <- 'visfatlas' #'cVWFA' 'LexPerVWFA'
+cosmo_results_path_ReadSpeech <- paste(cosmo_results, task_ReadSpeech,  decoding_label,
                                        'unimodal','accuracy', sep ='/')
 
 #namePattern <- paste('sub-',group,'.*_label-VWFAwithinmodal_.*\\.csv$', sep = '')
@@ -47,7 +48,7 @@ for(g in seq_along(groups)) {
     #Set name pattern and get the files
     #namePattern <- paste('sub-',groups[g],'.*_label-VWFAwithinmodal_.*\\.csv$', sep = '')
     #namePattern <- paste('sub-',groups[g],'.*_label-VWFAcrossmodal_.*\\.csv$', sep = '')
-    namePattern <- paste('sub-',groups[g],'.*_label-visfatlas_.*\\.csv$', sep = '')
+    namePattern <- paste('sub-',groups[g],'.*_label-',decoding_label,'_.*\\.csv$', sep = '')
     
     allfiles_ReadSpeech <- list.files(cosmo_results_path_ReadSpeech, pattern = namePattern)
     
@@ -108,20 +109,16 @@ std.error <- function(x) sd(x)/sqrt(length(x))
 for(g in seq_along(groups)) {
     for(m in seq_along(modalities)) {
        for(c in seq_along(classifier)) {
-            
-            ## TESTING PHASE
-            #g = 1; m = 1; c = 2
-            
-            
-            ## test
-        
+            for (r in seq_along(roi)) {
+
            plot <- 
                 mvpa_joined %>% 
                 # Pick a condition and modality for this plot
                 filter(group == groups[g] & 
                            conditions == classifier[c] & 
                            modality == modalities[m] & 
-                           ffxResults == ffx) %>% 
+                           ffxResults == ffx &
+                           roiArea == roi[r]) %>% 
                 ggplot(aes(x = roiArea, y = accuracy, color = roiArea)) +
                 geom_point(aes(alpha = I(0.7)), 
                    position = position_jitterdodge(jitter.width=0.2,
@@ -159,8 +156,8 @@ for(g in seq_along(groups)) {
                 scale_y_continuous(name = "Clasisfier Accuracy [%]", 
                                    limits = c(0,100)) +
                 scale_x_discrete(name = 'Region of interest', 
-                                 labels = roi) +
-                ggtitle(paste(groups[g], modalities[m], classifier[c], sep = ' ')) +
+                                 labels = roi[r]) +
+               # ggtitle(paste(groups[g], modalities[m], classifier[c], sep = ' ')) +
                 theme_cowplot(font_size = 16, font_family = "Arial") +
                 theme(axis.line = element_line(colour = 'black', size = 1),
                       axis.ticks = element_line(colour = 'black', size = 1),
@@ -173,9 +170,11 @@ for(g in seq_along(groups)) {
 
 
             #Rename the plot based on what it represents 
-            assign(paste('plot_unimodal',groups[g], classifier[c], modalities[m],  sep = '_'), plot)
+            assign(paste('plot_unimodal',groups[g], classifier[c], roi[r], modalities[m],  
+                         sep = '_'), plot)
             rm(plot)
             
+            }
        }
    }
 }
@@ -184,7 +183,56 @@ for(g in seq_along(groups)) {
 
 
 Pathwork plot pasting 
-Titles are too big, they just indicate what's on plots for order, remove them in ppt
+QUICK AND DIRTY, OPTIMIZE IT IN THE LOOP WHEN YOU HAVE FREE CODING TIME! 
+
+V1
+```{r}
+
+plot_unimodal_blind_WordPseudoword_v1combined_reading + plot_unimodal_blind_WordControl_v1combined_reading + plot_unimodal_blind_PseudowordControl_v1combined_reading
+
+plot_unimodal_sighted_WordPseudoword_v1combined_reading + plot_unimodal_sighted_WordControl_v1combined_reading + plot_unimodal_sighted_PseudowordControl_v1combined_reading
+
+
+plot_unimodal_blind_WordPseudoword_v1combined_speech + plot_unimodal_blind_WordControl_v1combined_speech + plot_unimodal_blind_PseudowordControl_v1combined_speech
+
+plot_unimodal_sighted_WordPseudoword_v1combined_speech + plot_unimodal_sighted_WordControl_v1combined_speech + plot_unimodal_sighted_PseudowordControl_v1combined_speech
+
+
+```
+
+iOS
+```{r}
+
+plot_unimodal_blind_WordPseudoword_IOS_reading + plot_unimodal_blind_WordControl_IOS_reading + plot_unimodal_blind_PseudowordControl_IOS_reading
+
+plot_unimodal_sighted_WordPseudoword_IOS_reading + plot_unimodal_sighted_WordControl_IOS_reading + plot_unimodal_sighted_PseudowordControl_IOS_reading
+
+
+plot_unimodal_blind_WordPseudoword_IOS_speech + plot_unimodal_blind_WordControl_IOS_speech + plot_unimodal_blind_PseudowordControl_IOS_speech
+
+plot_unimodal_sighted_WordPseudoword_IOS_speech + plot_unimodal_sighted_WordControl_IOS_speech + plot_unimodal_sighted_PseudowordControl_IOS_speech
+
+
+```
+
+
+pOTS
+```{r}
+
+plot_unimodal_blind_WordPseudoword_pOTS_reading + plot_unimodal_blind_WordControl_pOTS_reading + plot_unimodal_blind_PseudowordControl_pOTS_reading
+
+plot_unimodal_sighted_WordPseudoword_pOTS_reading + plot_unimodal_sighted_WordControl_pOTS_reading + plot_unimodal_sighted_PseudowordControl_pOTS_reading
+
+
+plot_unimodal_blind_WordPseudoword_pOTS_speech + plot_unimodal_blind_WordControl_pOTS_speech + plot_unimodal_blind_PseudowordControl_pOTS_speech
+
+plot_unimodal_sighted_WordPseudoword_pOTS_speech + plot_unimodal_sighted_WordControl_pOTS_speech + plot_unimodal_sighted_PseudowordControl_pOTS_speech
+
+
+```
+
+
+
 ```{r}
 
 ## READING

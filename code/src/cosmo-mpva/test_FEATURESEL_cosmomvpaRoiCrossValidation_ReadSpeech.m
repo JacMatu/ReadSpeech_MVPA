@@ -1,6 +1,6 @@
 % cosmo MVPA
 
-function cosmomvpaRoiCrossValidation_ReadSpeech(opt)
+function test_FEATURESEL_cosmomvpaRoiCrossValidation_ReadSpeech(opt)
 
 % be very verbose please
 cosmo_warning('off')
@@ -48,7 +48,7 @@ for iSub = 1:numel(opt.subjects)
         '_label-', opt.cosmomvpa.ROIlabel, ...
         '_desc-smth', num2str(opt.cosmomvpa.funcFWHM), ...
         '_ffx-', opt.cosmomvpa.ffxResults{1}, ...
-        '_featureRatio-', num2str(opt.cosmomvpa.ratioToKeep), ...
+        '_featureRatio-', 'WorstSubjectPerROI', ...
         '_date-', datestr(now, 'yyyymmddHHMM'), ...
         '_mvpa.csv' ]);
     
@@ -59,7 +59,7 @@ for iSub = 1:numel(opt.subjects)
         '_label-', opt.cosmomvpa.ROIlabel, ...
         '_desc-smth', num2str(opt.cosmomvpa.funcFWHM), ...
         '_ffx-', opt.cosmomvpa.ffxResults{1}, ...
-        '_featureRatio-', num2str(opt.cosmomvpa.ratioToKeep), ...
+        '_featureRatio-', 'WorstSubjectPerROI', ...
         '_date-', datestr(now, 'yyyymmddHHMM'), ...
         '_mvpa.mat' ]);
     
@@ -70,6 +70,7 @@ for iSub = 1:numel(opt.subjects)
         'roiArea', [], ...
         'roiDimension', [], ...
         'roiNbVoxels', [], ...
+        'mvpaFeatures', [], ...
         'ffxResults', [], ...
         'conditions', [], ...
         'modality', [], ...
@@ -111,7 +112,7 @@ for iSub = 1:numel(opt.subjects)
             %                 fprintf(['\n For ROI dimension: ' num2str(opt.cosmomvpa.roiDimension(iRoiDimension)) 'mm\n\n']);
             
             % set ratio to keep depending on the ROI dimension
-            opt.cosmomvpa.feature_selection_ratio_to_keep = opt.cosmomvpa.ratioToKeep(iRoiDimension);
+            %opt.cosmomvpa.feature_selection_ratio_to_keep = opt.cosmomvpa.ratioToKeep;
             
             %                 % load ROI masks for a specific dimension
             %                 roiPattern = ['*' num2str(opt.cosmomvpa.roiDimension(iRoiDimension)) 'mm.nii'];
@@ -129,6 +130,7 @@ for iSub = 1:numel(opt.subjects)
             %% ROI MVPA analyses
             
             for iMask = 1:length(roiMasks)
+                
                 
                 % define brain mask
                 mask = roiMasks{iMask};
@@ -149,6 +151,19 @@ for iSub = 1:numel(opt.subjects)
                 roiName = label{2};
                 
                 fprintf(['\nMask: ' roiName '\n\n']);
+                
+                % Set the number of voxels for this ROI!
+                % take into account whether it varies from ROI to ROI or is
+                % fixed single number (either ratio or number of voxels!)
+                if numel(opt.cosmomvpa.ratioToKeep) > 1
+                    
+                    opt.cosmomvpa.feature_selection_ratio_to_keep = opt.cosmomvpa.ratioToKeep(iMask);
+                    
+                elseif numel(opt.cosmomvpa.ratioToKeep) == 1
+                    
+                    opt.cosmomvpa.feature_selection_ratio_to_keep = opt.cosmomvpa.ratioToKeep;
+                    
+                end
                 
                 %% 3 conditions (words, pseudo, control) x 2 modalities (reading, speech) in both groups (blind, sighted)
                 stim = [1 2 3  ...
@@ -173,8 +188,22 @@ for iSub = 1:numel(opt.subjects)
                         
                         ds = cosmo_slice(ds, ~zero_msk, 2);
                         
-                        mask_size = size(ds.samples, 2);
-                        
+                        % get the number of voxels, accounting for feature
+                        % selection! 
+                        % if the feature selection is a ratio
+                        %if opt.cosmomvpa.feature_selection_ratio_to_keep < 1
+                            
+                        %    mask_size = floor(size(ds.samples, 2) .* opt.cosmomvpa.feature_selection_ratio_to_keep);
+                            
+                        %elseif opt.cosmomvpa.feature_selection_ratio_to_keep > 1
+                            
+                        %    mask_size = opt.cosmomvpa.feature_selection_ratio_to_keep;
+                            
+                        %else 
+                            
+                            mask_size = size(ds.samples, 2);
+                            featureRatio = opt.cosmomvpa.feature_selection_ratio_to_keep;
+                        %end
                         % set chunks, targets and labels
                         
                         ds = setTargetsChunksLabels(opt, ds, stim, labels, nbRun);
@@ -250,7 +279,7 @@ for iSub = 1:numel(opt.subjects)
                             '_label-', roiName, ...
                             '_desc-smth', num2str(opt.cosmomvpa.funcFWHM), ...
                             '_ffx-', opt.cosmomvpa.ffxResults{1}, ...
-                            '_featureRatio-', num2str(opt.cosmomvpa.ratioToKeep), ...
+                            '_featureRatio-', 'WorstSubjectPerROI', ...
                             '_date-', datestr(now, 'yyyymmddHHMM'), ...
                             '_desc-', [opt.cosmomvpa.modalities{iModality},conditionsToTest{iConditionToTest}],...
                             '_mvpa_ConfMat.mat' ]);
@@ -294,6 +323,7 @@ for iSub = 1:numel(opt.subjects)
                             roiName, ...
                             opt.cosmomvpa.roiDimension(iRoiDimension), ...
                             mask_size, ...
+                            featureRatio, ...
                             opt.cosmomvpa.ffxResults{iFfxResult}, ...
                             conditionsToTest{iConditionToTest}, ...
                             opt.cosmomvpa.modalities{iModality}, ...
@@ -353,13 +383,14 @@ end
 
 
 function  accu = storeResults(accu, count, subID, roiName, ...
-    roiDimension, mask_size, ffxResult, conditionName, modality, accuracy, acc0, p)
+    roiDimension, mask_size, featureRatio, ffxResult, conditionName, modality, accuracy, acc0, p)
 
     % store results
     accu(count).sub = subID;
     accu(count).roiArea = roiName;
     accu(count).roiDimension = roiDimension;
     accu(count).roiNbVoxels = mask_size;
+    accu(count).mvpaFeatures = featureRatio;
     accu(count).ffxResults = ffxResult;
     accu(count).conditions = conditionName;
     accu(count).modality = modality;

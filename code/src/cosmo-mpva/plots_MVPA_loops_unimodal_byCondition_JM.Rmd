@@ -9,6 +9,28 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+This script loads csv accuracy outputs from `runMVPA_unimodal_ReadSpeech.m` and 
+plots individual accuracies + group mean & SE per decoding condition in each ROI. 
+
+Expected structure: 
+outputs
+    derivatives
+        cosmo-mvpa
+            <decoding_label> [mostly atlas or ROI type, e.g. 'visfatlas']
+                accuracies [this is where your csv files should be ]
+                permutations [not important for this script]
+                confusion matrices [not important for this script]
+
+
+decoding condition = pairwise decoding between each par of classes
+Script should work even if you only have 1 (e.g. multiclass decoding)
+
+This script will also calculate "group summaries" for accuracy (mean se) and print 
+them on plots for convenience
+
+Looking for ROIs, conditions and sensory modalities is done through `unique` function, 
+so it's not hardcoded, it will just look for the unique values in your analyses
+
 Load packages
 ```{r}
 library(tidyverse)
@@ -24,7 +46,7 @@ Set variables
 
 
 ffx <- 'beta' # beta tmap
-featRatio <- '0.8'
+#featRatio <- '0.8' #just for saving outputs?
 #space <-'IXI549Space'
 FWHM <- 2
 groups <- c('blind', 'sighted') # blind or sighted
@@ -33,7 +55,7 @@ cosmo_results <- '/Volumes/Slim_Reaper/Projects/Language_MVPA/outputs/derivative
 #task_audVis <-  paste('task-audVisMotSpatialFreq_space-MNI152NLin2009cAsym_FWHM-', as.character(FWHM), '_node-mvpaBlockAverage', sep ='')
 task_ReadSpeech <- paste0('task-MultimodalReadSpeech_space-IXI549Space_FWHM-',as.character(FWHM),'_node-mvpa6betas')
 
-decoding_label <- 'LexPerVWFA'#'visfatlas' #'cVWFA' 'LexPerVWFA'
+decoding_label <- 'JuBrain'#'visfatlas' #'cVWFA' 'LexPerVWFA' 'JuBrain'
 cosmo_results_path_ReadSpeech <- paste(cosmo_results, task_ReadSpeech,  decoding_label,
                                        'unimodal','accuracy', sep ='/')
 
@@ -102,30 +124,37 @@ mvpa_accuracy <-  mvpa_joined %>%
 ```
 
 
-Plotting loop across everything? Start easy
+PLOTTING FOR BOTH GROUPS  (pasted next to each other)
 ```{r}
 
 dark_colors <- brewer.pal(n=3, name = "Dark2") 
 light_colors <- brewer.pal(n=3, name = "Pastel2") 
 std.error <- function(x) sd(x)/sqrt(length(x))
 
-for(g in seq_along(groups)) {
+#for(g in seq_along(groups)) {
     for(m in seq_along(modalities)) {
       # for(c in seq_along(classifier)) {
             for (r in seq_along(roi)) {
         
-            accu <- mvpa_accuracy %>% 
-                filter(group == groups[g] & 
+            accu_bl <- mvpa_accuracy %>% 
+                filter(group == 'blind' & 
+                           #conditions == classifier[c] & 
+                           modality == modalities[m] & 
+                           ffxResults == ffx &
+                           roiArea == roi[r])
+            
+            accu_sig <- mvpa_accuracy %>% 
+                filter(group == 'sighted' & 
                            #conditions == classifier[c] & 
                            modality == modalities[m] & 
                            ffxResults == ffx &
                            roiArea == roi[r])
                 
                 
-           plot <- 
+           plot_bl <- 
                 mvpa_joined %>% 
                 # Pick a condition and modality for this plot
-                filter(group == groups[g] & 
+                filter(group == 'blind' & 
                            #conditions == classifier[c] & 
                            modality == modalities[m] & 
                            ffxResults == ffx &
@@ -159,65 +188,187 @@ for(g in seq_along(groups)) {
                        linetype="dotted", 
                        colour="black", 
                        linewidth=.5) +
-                scale_color_manual(values = if(groups[g] == 'blind'){
-                    c(rep(dark_colors[1], 3))
-                } else if(groups[g] == 'sighted') {
-                    c(rep(dark_colors[2], 3))
-                }) +
+                scale_color_manual(values = c(rep(dark_colors[1], 3))) +
                 scale_y_continuous(name = "Clasisfier Accuracy [%]", 
                                    limits = c(0,100)) +
                 scale_x_discrete(name = 'Decoding conditions') +
-               # ggtitle(paste(groups[g], modalities[m], classifier[c], sep = ' ')) +
-               # TRY TO ANNOTATE THE PLOTS WITH MEAN AND SEM VALUES? 
                 annotate("text", 
                          x = classifier, 
                          y = 5, 
-                         label = c(round(accu$mean_accuracy, digits = 2)))+
+                         label = c(round(accu_bl$mean_accuracy, digits = 2)))+
                 annotate("text", 
                          x = classifier, 
                          y = 0, 
-                         label = c(round(accu$se_accuracy, digits = 2))) +
+                         label = c(round(accu_bl$se_accuracy, digits = 2))) +
                 theme_cowplot(font_size = 16, font_family = "Arial") +
                 theme(axis.line = element_line(colour = 'black', size = 1),
                       axis.ticks = element_line(colour = 'black', size = 1),
                       axis.text = element_text(face="bold"),
                       legend.position = 'none')
-                
+           
+           plot_sig <- 
+                mvpa_joined %>% 
+                # Pick a condition and modality for this plot
+                filter(group == 'sighted' & 
+                           #conditions == classifier[c] & 
+                           modality == modalities[m] & 
+                           ffxResults == ffx &
+                           roiArea == roi[r]) %>% 
+                ggplot(aes(x = conditions, y = accuracy, color = roiArea)) +
+                geom_point(aes(alpha = I(0.7)), 
+                   position = position_jitterdodge(jitter.width=0.2,
+                                                   dodge.width = 0.3),
+                   size = 4.5) +
+                stat_summary(aes(x =conditions, y = accuracy, color = roiArea),
+                     fun = "mean", 
+                     geom = "crossbar", 
+                     position = position_dodge(width = 0.5),
+                     width = .55,
+                     colour  = 'black',
+                     inherit.aes = FALSE,
+                    show.legend = FALSE) + 
+                stat_summary(aes(x = conditions, y = accuracy, color = roiArea),
+                         fun.max = function(x) mean(x) + (std.error(x)), # sems too small for sighted
+                         fun.min = function(x) mean(x) - (std.error(x)), # sems too small for sighted
+                         #fun.max = function(x) mean(x) + sd(x),
+                         #fun.min = function(x) mean(x) - sd(x),
+                         geom = "errorbar",
+                         position = position_dodge(width = 0.5),
+                         width = .15,
+                         size = 0.8,
+                         colour  = 'black',
+                         inherit.aes = FALSE,
+                         show.legend = FALSE) + 
+                geom_hline(yintercept=c(50), 
+                       linetype="dotted", 
+                       colour="black", 
+                       linewidth=.5) +
+                scale_color_manual(values = c(rep(dark_colors[2], 3))) +
+                scale_y_continuous(name = "Clasisfier Accuracy [%]", 
+                                   limits = c(0,100)) +
+                scale_x_discrete(name = 'Decoding conditions') +
+                annotate("text", 
+                         x = classifier, 
+                         y = 5, 
+                         label = c(round(accu_sig$mean_accuracy, digits = 2)))+
+                annotate("text", 
+                         x = classifier, 
+                         y = 0, 
+                         label = c(round(accu_sig$se_accuracy, digits = 2))) +
+                theme_cowplot(font_size = 16, font_family = "Arial") +
+                theme(axis.line = element_line(colour = 'black', size = 1),
+                      axis.ticks = element_line(colour = 'black', size = 1),
+                      axis.text = element_text(face="bold"),
+                      legend.position = 'none')
+            
+           plot <- plot_bl + plot_sig    
                            
             #Rename the plot based on what it represents 
-            assign(paste('plot_unimodal',groups[g], roi[r], modalities[m],  
+            assign(paste('plot_unimodal', roi[r], modalities[m],  
                          sep = '_'), plot)
-            rm(plot)
+            rm(plot, plot_bl, plot_sig)
             
             }
       # }
    }
-}
+#}
 
 ```
 
 
-Pathwork plot pasting 
-QUICK AND DIRTY, OPTIMIZE IT IN THE LOOP WHEN YOU HAVE FREE CODING TIME! 
-
+Plotting individually for each group / ROI
 ```{r}
+# 
+# dark_colors <- brewer.pal(n=3, name = "Dark2") 
+# light_colors <- brewer.pal(n=3, name = "Pastel2") 
+# std.error <- function(x) sd(x)/sqrt(length(x))
+# 
+# for(g in seq_along(groups)) {
+#     for(m in seq_along(modalities)) {
+#       # for(c in seq_along(classifier)) {
+#             for (r in seq_along(roi)) {
+#         
+#             accu <- mvpa_accuracy %>% 
+#                 filter(group == groups[g] & 
+#                            #conditions == classifier[c] & 
+#                            modality == modalities[m] & 
+#                            ffxResults == ffx &
+#                            roiArea == roi[r])
+#                 
+#                 
+#            plot <- 
+#                 mvpa_joined %>% 
+#                 # Pick a condition and modality for this plot
+#                 filter(group == groups[g] & 
+#                            #conditions == classifier[c] & 
+#                            modality == modalities[m] & 
+#                            ffxResults == ffx &
+#                            roiArea == roi[r]) %>% 
+#                 ggplot(aes(x = conditions, y = accuracy, color = roiArea)) +
+#                 geom_point(aes(alpha = I(0.7)), 
+#                    position = position_jitterdodge(jitter.width=0.2,
+#                                                    dodge.width = 0.3),
+#                    size = 4.5) +
+#                 stat_summary(aes(x =conditions, y = accuracy, color = roiArea),
+#                      fun = "mean", 
+#                      geom = "crossbar", 
+#                      position = position_dodge(width = 0.5),
+#                      width = .55,
+#                      colour  = 'black',
+#                      inherit.aes = FALSE,
+#                     show.legend = FALSE) + 
+#                 stat_summary(aes(x = conditions, y = accuracy, color = roiArea),
+#                          fun.max = function(x) mean(x) + (std.error(x)), # sems too small for sighted
+#                          fun.min = function(x) mean(x) - (std.error(x)), # sems too small for sighted
+#                          #fun.max = function(x) mean(x) + sd(x),
+#                          #fun.min = function(x) mean(x) - sd(x),
+#                          geom = "errorbar",
+#                          position = position_dodge(width = 0.5),
+#                          width = .15,
+#                          size = 0.8,
+#                          colour  = 'black',
+#                          inherit.aes = FALSE,
+#                          show.legend = FALSE) + 
+#                 geom_hline(yintercept=c(50), 
+#                        linetype="dotted", 
+#                        colour="black", 
+#                        linewidth=.5) +
+#                 scale_color_manual(values = if(groups[g] == 'blind'){
+#                     c(rep(dark_colors[1], 3))
+#                 } else if(groups[g] == 'sighted') {
+#                     c(rep(dark_colors[2], 3))
+#                 }) +
+#                 scale_y_continuous(name = "Clasisfier Accuracy [%]", 
+#                                    limits = c(0,100)) +
+#                 scale_x_discrete(name = 'Decoding conditions') +
+#                # ggtitle(paste(groups[g], modalities[m], classifier[c], sep = ' ')) +
+#                # TRY TO ANNOTATE THE PLOTS WITH MEAN AND SEM VALUES? 
+#                 annotate("text", 
+#                          x = classifier, 
+#                          y = 5, 
+#                          label = c(round(accu$mean_accuracy, digits = 2)))+
+#                 annotate("text", 
+#                          x = classifier, 
+#                          y = 0, 
+#                          label = c(round(accu$se_accuracy, digits = 2))) +
+#                 theme_cowplot(font_size = 16, font_family = "Arial") +
+#                 theme(axis.line = element_line(colour = 'black', size = 1),
+#                       axis.ticks = element_line(colour = 'black', size = 1),
+#                       axis.text = element_text(face="bold"),
+#                       legend.position = 'none')
+#                 
+#                            
+#             #Rename the plot based on what it represents 
+#             assign(paste('plot_unimodal',groups[g], roi[r], modalities[m],  
+#                          sep = '_'), plot)
+#             rm(plot)
+#             
+#             }
+#       # }
+#    }
+# }
 
 ```
 
 
-```{r}
-
-## READING
-#BLIND
-plot_unimodal_blind_WordPseudoword_reading + plot_unimodal_blind_WordControl_reading + plot_unimodal_blind_PseudowordControl_reading
-#SIGHTED
-plot_unimodal_sighted_WordPseudoword_reading + plot_unimodal_sighted_WordControl_reading + plot_unimodal_sighted_PseudowordControl_reading
-
-## SPEECH
-#BLIND
-plot_unimodal_blind_WordPseudoword_speech + plot_unimodal_blind_WordControl_speech + plot_unimodal_blind_PseudowordControl_speech
-#SIGHTED
-plot_unimodal_sighted_WordPseudoword_speech + plot_unimodal_sighted_WordControl_speech + plot_unimodal_sighted_PseudowordControl_speech
-
-```
 

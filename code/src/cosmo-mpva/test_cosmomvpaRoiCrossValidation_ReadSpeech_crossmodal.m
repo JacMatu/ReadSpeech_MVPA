@@ -1,6 +1,6 @@
 % cosmo MVPA
 
-function cosmomvpaRoiCrossValidation_ReadSpeech(opt)
+function test_cosmomvpaRoiCrossValidation_ReadSpeech_crossmodal(opt)
 
 % be very verbose please
 cosmo_warning('off')
@@ -12,12 +12,9 @@ for iSub = 1:numel(opt.subjects)
     opt.cosmomvpa.pathData = fullfile(opt.dir.stats, ...
                                       ['sub-' opt.subjects{iSub}], ...
                                       opt.dir.statsTask);
-    
-                                  
-    %Grab the ROIs based on opt.cosmomvpa.ROIlabel!                              
     BIDS = bids.layout(opt.dir.rois, ... 
                        'use_schema', false);
-                   
+
    % querry ROIs based on atlas or spheres                
    if strcmp(opt.cosmomvpa.ROInature, 'atlas')
         opt.query = [];
@@ -39,7 +36,6 @@ for iSub = 1:numel(opt.subjects)
     opt.cosmomvpa.roiFileNames = bids.query(BIDS, 'data', ...
                                             opt.query);
     
-    %LOOP ACROSS ROIs should start here? Now there is ROI label specified in                                    
                                         
     opt.cosmomvpa.csvFileName = fullfile(opt.cosmomvpa.pathOutput, ...
         'accuracy', ...
@@ -48,7 +44,7 @@ for iSub = 1:numel(opt.subjects)
         '_label-', opt.cosmomvpa.ROIlabel, ...
         '_desc-smth', num2str(opt.cosmomvpa.funcFWHM), ...
         '_ffx-', opt.cosmomvpa.ffxResults{1}, ...
-        '_featureRatio-', num2str(opt.cosmomvpa.ratioToKeep), ...
+        '_featureRatio-', 'WorstSubjectPerROI', ...
         '_date-', datestr(now, 'yyyymmddHHMM'), ...
         '_mvpa.csv' ]);
     
@@ -59,10 +55,9 @@ for iSub = 1:numel(opt.subjects)
         '_label-', opt.cosmomvpa.ROIlabel, ...
         '_desc-smth', num2str(opt.cosmomvpa.funcFWHM), ...
         '_ffx-', opt.cosmomvpa.ffxResults{1}, ...
-        '_featureRatio-', num2str(opt.cosmomvpa.ratioToKeep), ...
+        '_featureRatio-', 'WorstSubjectPerROI', ...
         '_date-', datestr(now, 'yyyymmddHHMM'), ...
         '_mvpa.mat' ]);
-    
     
     % set structure array for keeping the results
     accu = struct( ...
@@ -70,13 +65,12 @@ for iSub = 1:numel(opt.subjects)
         'roiArea', [], ...
         'roiDimension', [], ...
         'roiNbVoxels', [], ...
+        'mvpaFeatures', [], ...
         'ffxResults', [], ...
         'conditions', [], ...
-        'modality', [], ...
         'accuracy', []);
     
-%  ...
-%  'predictors', []);
+    %   'modality', [], ...
     
     % get FFX path
     subID = opt.subjects{iSub};
@@ -97,7 +91,13 @@ for iSub = 1:numel(opt.subjects)
         
         fprintf(['\n For ffx result: ' opt.cosmomvpa.ffxResults{iFfxResult} '\n\n']);
         
-        % set the 4D result image
+%         % set the 4D result image
+%         resultsImage = fullfile(pathData, ['sub-' opt.subjects{iSub} ...
+%                                           '_task-' 'audVisTactMotSpatialFreq' ...
+%                                           '_space-MNI152NLin2009cAsym' ... 
+%                                           '_desc-4D_' opt.cosmomvpa.ffxResults{iFfxResult} ...
+%                                           '.nii']);
+                                      
         resultsImage = fullfile(pathData, ['sub-' opt.subjects{iSub} ...
                                           '_task-' opt.taskName ...
                                           '_space-' opt.cosmomvpa.space ... 
@@ -111,7 +111,7 @@ for iSub = 1:numel(opt.subjects)
             %                 fprintf(['\n For ROI dimension: ' num2str(opt.cosmomvpa.roiDimension(iRoiDimension)) 'mm\n\n']);
             
             % set ratio to keep depending on the ROI dimension
-            opt.cosmomvpa.feature_selection_ratio_to_keep = opt.cosmomvpa.ratioToKeep(iRoiDimension);
+            %opt.cosmomvpa.feature_selection_ratio_to_keep = opt.cosmomvpa.ratioToKeep(iRoiDimension);
             
             %                 % load ROI masks for a specific dimension
             %                 roiPattern = ['*' num2str(opt.cosmomvpa.roiDimension(iRoiDimension)) 'mm.nii'];
@@ -139,7 +139,7 @@ for iSub = 1:numel(opt.subjects)
                 
                 bidspart = split(roiName, "_");
                 
-                % atlas and spheres have LABEL in different part of name
+                 % atlas and spheres have LABEL in different part of name
                 if strcmp(opt.cosmomvpa.ROInature, 'atlas')
                     label = split(bidspart(5), '-');
                 else
@@ -150,20 +150,43 @@ for iSub = 1:numel(opt.subjects)
                 
                 fprintf(['\nMask: ' roiName '\n\n']);
                 
-                %% 3 conditions (words, pseudo, control) x 2 modalities (reading, speech) in both groups (blind, sighted)
+                
+                % Set the number of voxels for this ROI!
+                % take into account whether it varies from ROI to ROI or is
+                % fixed single number (either ratio or number of voxels!)
+                if numel(opt.cosmomvpa.ratioToKeep) > 1
+                    
+                    opt.cosmomvpa.feature_selection_ratio_to_keep = opt.cosmomvpa.ratioToKeep(iMask);
+                    
+                elseif numel(opt.cosmomvpa.ratioToKeep) == 1
+                    
+                    opt.cosmomvpa.feature_selection_ratio_to_keep = opt.cosmomvpa.ratioToKeep;
+                    
+                end
+                
+                featureRatio = opt.cosmomvpa.feature_selection_ratio_to_keep;
+                
+                %% 3 conditions (Words, Pseudowords, Control) by 2 modalities
                 stim = [1 2 3  ...
-                        4 5 6];
+                        1 2 3];
                 
-                labels = opt.cosmomvpa.labels;
-                
-                conditionsToTest = opt.cosmomvpa.conditions;
-                
+                modalityNb = [1 1 1 ...
+                              2 2 2];
+
+                conditionsToTest = {'WordPseudoword','WordControl', 'PseudowordControl'};
+              
+                TrainTestSplit = {'trainRead_testSpeech', ... 
+                                    'trainSpeech_testRead'};
+   
+                                
                 for iConditionToTest = 1:length(conditionsToTest)
                     
                     % loop through modalities
-                    for iModality = 1:numel(opt.cosmomvpa.modalities)
+                     for iModality = 1:numel(TrainTestSplit)
                         
-                        fprintf([' Modality: ' opt.cosmomvpa.modalities{iModality} '\n\n']);
+                        fprintf([' Training Modality: ' opt.cosmomvpa.modalities{iModality} '\n\n']);
+                        
+                        TrainTest = TrainTestSplit{iModality};
                         
                         % define the data structure
                         ds = cosmo_fmri_dataset(resultsImage, 'mask', mask);
@@ -175,140 +198,144 @@ for iSub = 1:numel(opt.subjects)
                         
                         mask_size = size(ds.samples, 2);
                         
-                        % set chunks, targets and labels
-                        
-                        ds = setTargetsChunksLabels(opt, ds, stim, labels, nbRun);
-                        
-                        switch opt.cosmomvpa.modalities{iModality}
-                                                        
-                            case 'reading'
-                                
-                                switch conditionsToTest{iConditionToTest}
-                                    
-                                %Multiclass (3)
-                                    case 'WordPseudowordControl'
-                                        
-                                        ds = cosmo_slice(ds, ds.sa.targets == 1 | ds.sa.targets == 2 | ...
-                                            ds.sa.targets == 3);
-                                %Pairwise (2)        
-                                    case 'WordPseudoword'
-                                
-                                        ds = cosmo_slice(ds, ds.sa.targets == 1 | ds.sa.targets == 2);
-                                    case 'WordControl' 
-                                        
-                                       ds = cosmo_slice(ds, ds.sa.targets == 1 | ds.sa.targets == 3);
-                                        
-                                    case 'PseudowordControl'
-                                       ds = cosmo_slice(ds, ds.sa.targets == 2 | ds.sa.targets == 3);
-                                end
-                                
-                            case 'speech'
-                                
-                                switch conditionsToTest{iConditionToTest}
-                                    
-                                %Multiclass (3)
-                                    case 'WordPseudowordControl'
-                                        
-                                        ds = cosmo_slice(ds, ds.sa.targets == 4 | ds.sa.targets == 5 | ...
-                                            ds.sa.targets == 6);
-                                %Pairwise (2)        
-                                    case 'WordPseudoword'
-                                
-                                        ds = cosmo_slice(ds, ds.sa.targets == 4 | ds.sa.targets == 5);
-                                    case 'WordControl' 
-                                        
-                                       ds = cosmo_slice(ds, ds.sa.targets == 4 | ds.sa.targets == 6);
-                                        
-                                    case 'PseudowordControl'
-                                       ds = cosmo_slice(ds, ds.sa.targets == 5 | ds.sa.targets == 6);
-                                end
-                                
-
-                                
-                        end
-                        
                         % remove constant features
                         ds = cosmo_remove_useless_data(ds);
                         
+                        % Demean  every pattern to remove univariate effect differences
+                        meanPattern = mean(ds.samples, 2);  % get the mean for every pattern
+                        meanPattern = repmat(meanPattern, 1, size(ds.samples, 2)); % make a matrix with repmat
+                        ds.samples  = ds.samples - meanPattern; % remove the mean from every every point in each pattern
+                        
+                        
+                        % set chunks, targets and labels
+                        
+                        ds = setTargetsChunksLabels(opt, ds, stim, modalityNb, nbRun);
+                        
+                        %always train on speech test on reading? 
+                        %train_modality = 2;
+                        %test_modality = 1;
+                       
+                         switch TrainTestSplit{iModality}
+                                                        
+                            case 'trainRead_testSpeech'
+                                
+                                train_modality = 1;
+                                
+                                test_modality = 2;
+                                
+                            case 'trainSpeech_testRead'
+                                
+                                train_modality = 2;
+                                
+                                test_modality = 1;
+   
+                        end                                
+   
+                       
+                        
+                        % get only the two modalities of interest
+                        msk = cosmo_match(ds.sa.modality, [1 2]);
+                        ds_sel = cosmo_slice(ds, msk);
+                        
+                        % avoid condition 3 full motion or the moment
+                        msk = cosmo_match(ds_sel.sa.targets, [1 2 3]);
+                        ds_sel = cosmo_slice(ds_sel, msk);
+                        
+                        
+                         switch conditionsToTest{iConditionToTest}
+                                    
+                                %Pairwise (2)        
+                                    case 'WordPseudoword'
+                                
+                                        ds_sel = cosmo_slice(ds_sel, ds_sel.sa.targets == 1 | ds.sa.targets == 2);
+                                    case 'WordControl' 
+                                        
+                                       ds_sel = cosmo_slice(ds_sel, ds_sel.sa.targets == 1 | ds.sa.targets == 3);
+                                       
+                                    case 'PseudowordControl'
+                                        
+                                        ds_sel = cosmo_slice(ds_sel, ds_sel.sa.targets == 2 | ds.sa.targets == 3);
+                          end     
+                                
                         % partitioning, for test and training : cross validation
-                        partitions = cosmo_nfold_partitioner(ds);
+                        partitions = cosmo_nchoosek_partitioner(ds_sel, 1, 'modality', test_modality);
                         
                         % ROI mvpa analysis
-                        [pred, accuracy] = cosmo_crossvalidate(ds, ...
-                            @cosmo_meta_feature_selection_classifier, ...
-                            partitions, opt.cosmomvpa);
                         
-                        % Create and save confusion matrices for each subject
-                        %ConfMat_folds = cosmo_confusion_matrix(ds.sa.targets,pred);
-                        %ConfMat = sum(ConfMat_folds, 3);
-                        ConfMat = sum(cosmo_confusion_matrix(ds.sa.targets,pred), 3);
+                        % I use @cosmo_meta_feature_selection_classifier
+                        % Iqra uses @cosmo_classify_meta_feature_selection
+                        % Donnow the difference
+
+                        [pred, accuracy] = cosmo_crossvalidate(ds_sel, ...
+                                                               @cosmo_classify_meta_feature_selection, ...
+                                                               partitions, opt.cosmomvpa);
+                                                           
+
                         
-                        ConfMatName = fullfile(opt.cosmomvpa.pathOutput, ...
-                            'confusion_matrices',...
-                            ['sub-', opt.subjects{iSub}, ...
-                            '_task-', opt.taskName, ...
-                            '_label-', roiName, ...
-                            '_desc-smth', num2str(opt.cosmomvpa.funcFWHM), ...
-                            '_ffx-', opt.cosmomvpa.ffxResults{1}, ...
-                            '_featureRatio-', num2str(opt.cosmomvpa.ratioToKeep), ...
-                            '_date-', datestr(now, 'yyyymmddHHMM'), ...
-                            '_desc-', [opt.cosmomvpa.modalities{iModality},conditionsToTest{iConditionToTest}],...
-                            '_mvpa_ConfMat.mat' ]);
-                        
-                        
-                        save(ConfMatName, 'ConfMat');
-                        %% PERMUTATION PART
+                    %% Confusion matrices    
+%                         ConfMat = sum(cosmo_confusion_matrix(ds.sa.targets,pred), 3);
+%                         
+%                         ConfMatName = fullfile(opt.cosmomvpa.pathOutput, ...
+%                             'confusion_matrices',...
+%                             ['sub-', opt.subjects{iSub}, ...
+%                             '_task-', opt.taskName, ...
+%                             '_label-', roiName, ...
+%                             '_desc-smth', num2str(opt.cosmomvpa.funcFWHM), ...
+%                             '_ffx-', opt.cosmomvpa.ffxResults{1}, ...
+%                             '_featureRatio-', 'WorstSubjectPerROI', ...
+%                             '_date-', datestr(now, 'yyyymmddHHMM'), ...
+%                             '_desc-', [TrainTestSplit{iModality},'_',conditionsToTest{iConditionToTest}],...
+%                             '_mvpa_ConfMat.mat' ]);
+%                         
+%                         
+%                         save(ConfMatName, 'ConfMat');
+                        %% PERMUTATION PART - ASK ALICE FOR SOLUTION!
                         
 %                         if opt.mvpa.permutate  == 1
                             % number of iterations
-                            nbIter = 100;
+                          %  nbIter = 100;
                             
                             % allocate space for permuted accuracies
-                            acc0 = zeros(nbIter, 1);
+                          %  acc0 = zeros(nbIter, 1);
                             
                             % make a copy of the dataset
-                            ds0 = ds;
+                          %  ds0 = ds_sel;
                             
                             % for _niter_ iterations, reshuffle the labels and compute accuracy
                             % Use the helper function cosmo_randomize_targets
-                            for k = 1:nbIter
-                                ds0.sa.targets = cosmo_randomize_targets(ds);
+                          %  for k = 1:nbIter
+                          %      ds0.sa.targets = cosmo_randomize_targets(ds_sel);
                                 
-                                [~, acc0(k)] = cosmo_crossvalidate(ds0, ...
-                                    @cosmo_meta_feature_selection_classifier, ...
-                                    partitions, opt.cosmomvpa);
+                           %     [~, acc0(k)] = cosmo_crossvalidate(ds0, ...
+                         %           @cosmo_meta_feature_selection_classifier, ...
+                           %         partitions, opt.cosmomvpa);
                                 
-                            end
+                          %  end
                             
-                            p = sum(accuracy < acc0) / nbIter;
+                          %  p = sum(accuracy < acc0) / nbIter;     
+                       
                             
                             
-
-%                         end
-                        
-                        %%
-                        
-                        % store results to be saved
+                                                % store results to be saved
                         accu = storeResults(accu, count, ...
                             subID, ...
                             roiName, ...
                             opt.cosmomvpa.roiDimension(iRoiDimension), ...
                             mask_size, ...
+                            featureRatio, ...
                             opt.cosmomvpa.ffxResults{iFfxResult}, ...
                             conditionsToTest{iConditionToTest}, ...
-                            opt.cosmomvpa.modalities{iModality}, ...
-                            accuracy, ...
-                            acc0, ...
-                            p);
-                        
+                            TrainTest, ...
+                            accuracy);%, ...
+                         %   acc0, ...
+                         %   p);    
+ %%                
+
                         count = count + 1;
                         
-                        fprintf(['  - condition: ' conditionsToTest{iConditionToTest} ', accuracy: ' num2str(accuracy) '\n']);
+                        fprintf(['  - condition: ' conditionsToTest{iConditionToTest} ', accuracy: ' num2str(accuracy) '\n\n\n']);
                         
-                        fprintf('   - %d permutations: accuracy=%.3f, p=%.4f\n\n\n', nbIter, accuracy, p);
-
-                        
-                    end
+                     end
                     
                 end
                 
@@ -321,15 +348,13 @@ for iSub = 1:numel(opt.subjects)
     savefileCsv = opt.cosmomvpa.csvFileName;
     
     writetable(struct2table(accu), savefileCsv)
-
-    save(matName, 'accu');
     
 end
 
 end
 
 
-function ds = setTargetsChunksLabels(opt, ds, stim, labels, nbRun)
+function ds = setTargetsChunksLabels(opt, ds, stim, modalityNb, nbRun)
 
     % set chunks (runs by trial_type), target (stimulation type - modality),
     % names (stimulation type name)
@@ -342,33 +367,36 @@ function ds = setTargetsChunksLabels(opt, ds, stim, labels, nbRun)
     targets = repmat(stim', 1, nbRun)';
     targets = targets(:);
 
-    labels = repmat(labels', 1, nbRun)';
-    labels = labels(:);
+
+    modalityNb =  repmat(modalityNb,(nbRun*opt.cosmomvpa.nbTrialRepetition),1);
+    modalityNb = modalityNb(:);
 
     ds.sa.targets = targets;
     ds.sa.chunks = chunks;
-    ds.sa.labels = labels;
+    ds.sa.modality = modalityNb;
+    
+%     horzcat(ds.sa.chunks, ds.sa.targets, ds.sa.modality)
+
 
 end
 
 
 function  accu = storeResults(accu, count, subID, roiName, ...
-    roiDimension, mask_size, ffxResult, conditionName, modality, accuracy, acc0, p)
+    roiDimension, mask_size,  featureRatio, ffxResult, conditionName,TrainTest,accuracy)%, acc0, p)
+ 
 
     % store results
     accu(count).sub = subID;
     accu(count).roiArea = roiName;
     accu(count).roiDimension = roiDimension;
     accu(count).roiNbVoxels = mask_size;
+    accu(count).mvpaFeatures = featureRatio;
     accu(count).ffxResults = ffxResult;
     accu(count).conditions = conditionName;
-    accu(count).modality = modality;
+    accu(count).TrainTest = TrainTest;
     accu(count).accuracy = accuracy;
-    %     accu(count).predictors = pred;
-    
-    % save permuted accuracies
-    accu(count).permutation = acc0';
-    accu(count).pValue = p;
-    
+    %accu(count).permutation = acc0';
+    %accu(count).pValue = p;
+    %accu(count).predictors = pred;
 
 end

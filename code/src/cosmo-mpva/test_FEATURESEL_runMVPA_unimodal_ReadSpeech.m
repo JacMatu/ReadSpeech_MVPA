@@ -34,8 +34,27 @@ opt.cosmomvpa.ROIlabel = 'JuBrain';
 %opt.cosmomvpa.roiDimension = [ 7 ]; % specify different sphere radiuses if you have them, e.g. [7,10,15...]
 opt.cosmomvpa.roiDimension = [ 10 ];
 
-opt.cosmomvpa.ratioToKeep = 1; %watch out, with this ROI not all people have the same n of voxels
+% RATIO TO KEEP, THIS IS A BIG ONE! 
+% Sooooo this assumes that ths script was first ran with ratioToKeep = 1; 
+% then, lowest number of voxels per ROI were identified in the whole group 
+% (both blind and sighted, AKA "THE WORST SUBJECT"). Then, this number is
+% used for each ROI to make sure all subjects have identical number of
+% voxels used in the analyses. ROIs are querried alphabetically by label, 
+% so with JuBrain atlas these are: 
+%1. Broca = 198
+%2. FG2 = 77
+%3. FG4 = 120
+%4. MTG = 321
+%5. V1 = 816
+% Basic idea here is to specify these as cell and then let the
+% crossvalidation script read it for each ROI in a loop! 
+opt.cosmomvpa.ratioToKeep = [198 77 120 321 816]; 
+%opt.cosmomvpa.ratioToKeep = 0.1; 
+
+
+%opt.cosmomvpa.ratioToKeep = 1; %watch out, with this ROI not all people have the same n of voxels
 %opt.cosmomvpa.ratioToKeep = [100];
+
 
 opt.cosmomvpa.normalization = 'zscore';
 
@@ -87,9 +106,11 @@ end
 %% Pick your subjects
 
 %List the sub numbers
-subNum = {'01', '02','03','04','05',...
-    '06','07','08','09','10','11','12',...
-    '13','14','15','16','17','18','19','20'}; 
+%subNum = {'01', '02','03','04','05',...
+%    '06','07','08','09','10','11','12',...
+%    '13','14','15','16','17','18','19','20'}; 
+
+subNum = {'01'};
 %List the groups
 group = {'blind','sighted'};
 
@@ -105,7 +126,7 @@ end
 % Initial tests say beta is better, but maybe plot it against T MAPS also? 
 opt.cosmomvpa.ffxResults = {'beta'};%{'beta'}; 
 
-cosmomvpaRoiCrossValidation_ReadSpeech(opt); % ADJUSTED?
+test_FEATURESEL_cosmomvpaRoiCrossValidation_ReadSpeech(opt); % ADJUSTED?
 
 % set which type of ffx results you want to use
 %opt.cosmomvpa.ffxResults = {'tmap'};

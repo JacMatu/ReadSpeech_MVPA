@@ -1,27 +1,7 @@
-%% statistical significance in mvpa
-% non-parametric technique by combining permutations and bootstrapping
 
-% step1:
-% For each subject, the labels of the different conditions (eg. motion_vertical and motion_horizontal) were permuted,
-% and the same decoding analysis was performed.
-% The previous step was repeated 100 times for each subject.
 
-% DONE in our decoding scripts
 
-% step2:
-% A bootstrap procedure was applied in order to obtain a group-level null distribution
-% that was representative of the whole group.
-% From each subject’s null distribution, one value was randomly chosen (with replacement)
-% and averaged across all participants.
-% This step was repeated 100,000 times resulting in a group-level null distribution of 100,000 values.
 
-% step3:
-% The statistical significance of the MVPA results was estimated by comparing the observed result
-% to the group-level null distribution. This was done by calculating the proportion of observations
-% in the null distribution that had a classification accuracy higher than the one obtained in the real test.
-
-% step4:
-% To account for the multiple comparisons, all p values were corrected using false discovery rate (FDR) correction
 
 clc;
 clear;
@@ -31,16 +11,21 @@ clear;
 % load the .mat file with decoding accuracies
 tic
 
-%decodTitle = 'spatialFrequencies';
+
 decodTitle = 'visfatlas';
 
-decodingModality = {'reading','speech'}; %sensory modalities
+%decodingModality = {'reading','speech'}; %sensory modalities
 
-decodingConditions = {'WordPseudoword', 'WordControl','PseudowordControl'};
+%decodingConditions = {'WordPseudoword', 'WordControl','PseudowordControl'};
 
-roiList = {'pOTS', 'IOS','v1combined'}; %based on visfatlas
+%roiList = {'pOTS', 'IOS','v1combined'}; %based on visfatlas
 
-group = 'blind'; %blind sighted
+% TEST PHASE: JUST PICK ONE
+decodingModality = {'reading'};
+decodingConditions = {'WordPseudoword'};
+roiList = {'IOS'};
+
+group = 'sighted'; %blind sighted
 mvpa = 'unimodal';
  
 %subject numbers to be pasted with 'sub-' and chosen group, i.e. 'sub-blind01'
@@ -64,8 +49,8 @@ featureRatio = 0.8;
 
 %voxNb = '100';
 % number of iterations for group level null distribution
-%nbIter = 100000;
-nbIter = 100; %just test if p values are different from 0
+nbIter = 100000;
+%nbIter = 100; %just test if p values are different from 0
 
 % Load acuu
 
@@ -258,7 +243,6 @@ for iMod = 1:length(decodingModality)
     subObsPValVec = [subObsPVal(1,:), subObsPVal(2,:)];
 
     fdrCorrPVal = mafdr(subObsPValVec, 'BHFDR', 'true');
-
 
     %% save the outout
     % save the

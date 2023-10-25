@@ -64,12 +64,33 @@ opt.subjects = {'blind01', 'blind02','blind03','blind04','blind05',...
 task = 'task-MultimodalReadSpeech_space-IXI549Space_FWHM-2_node-mvpa6betas';
 % Paste paths to mask.nii from all subjects 
 inputs_masks = fullfile(opt.dir.stats, strcat('sub-',opt.subjects), task, 'mask.nii');
+%gr_mask_name = 'group_task-MultimodalReadSpeech_space-IXI549Space_FWHM-2_node-mvpa6betas_mask.nii';
 gr_mask_name = 'group_task-MultimodalReadSpeech_space-IXI549Space_FWHM-2_node-mvpa6betas_mask.nii';
+gr_overlap_name = 'group_task-MultimodalReadSpeech_space-IXI549Space_FWHM-2_node-mvpa6betas-desc_sumoverlap_mask.nii';
+
 
     matlabbatch{1}.spm.util.imcalc.input = inputs_masks';
     matlabbatch{1}.spm.util.imcalc.output = gr_mask_name;
     matlabbatch{1}.spm.util.imcalc.outdir = cellstr(fullfile(opt.dir.rois, 'group'));
     matlabbatch{1}.spm.util.imcalc.expression = 'sum(X)==40'; % this has to be equal to the N of subjects 
+    matlabbatch{1}.spm.util.imcalc.var = struct('name', {}, 'value', {});
+    matlabbatch{1}.spm.util.imcalc.options.dmtx = 1;
+    matlabbatch{1}.spm.util.imcalc.options.mask = 0;
+    matlabbatch{1}.spm.util.imcalc.options.interp = 0;
+    matlabbatch{1}.spm.util.imcalc.options.dtype = 4;
+
+
+    spm('defaults', 'FMRI');
+    spm_jobman('run',matlabbatch);
+    
+    clear('matlabbatch');
+
+    % Overlap between subjects (%)
+    matlabbatch{1}.spm.util.imcalc.input = inputs_masks';
+    matlabbatch{1}.spm.util.imcalc.output = gr_overlap_name;
+    matlabbatch{1}.spm.util.imcalc.outdir = cellstr(fullfile(opt.dir.rois, 'group'));
+    %matlabbatch{1}.spm.util.imcalc.expression = '(sum(X)./40).*100'; % If you want to have % Overlap 
+    matlabbatch{1}.spm.util.imcalc.expression = 'sum(X)'; % If you want to have N subject/voxel
     matlabbatch{1}.spm.util.imcalc.var = struct('name', {}, 'value', {});
     matlabbatch{1}.spm.util.imcalc.options.dmtx = 1;
     matlabbatch{1}.spm.util.imcalc.options.mask = 0;
@@ -107,9 +128,11 @@ gr_mask_name = 'group_task-MultimodalReadSpeech_space-IXI549Space_FWHM-2_node-mv
 
     % paste the V1 mask from sub-parts 
     output_name = 'hemi-bilateral_space-MNI_atlas-visfatlas_label-v1combined_mask.nii';
+    
     %Grab all V1 masks, no time for BIDS querry, use oldschool spm_select
-    inputs_v1 = cellstr(spm_select('FPList', fullfile(opt.dir.rois, 'group'), 'hemi.*label-v1.*_mask.nii'));
-   
+    %inputs_v1 = cellstr(spm_select('FPList', fullfile(opt.dir.rois, 'group'), 'hemi.*label-v1.*_mask.nii'));
+    inputs_v1 = [cellstr(spm_select('FPList', fullfile(opt.dir.rois, 'group'), 'hemi.*label-v1d.*_mask.nii'));...
+        cellstr(spm_select('FPList', fullfile(opt.dir.rois, 'group'), 'hemi.*label-v1v.*_mask.nii'))];
     
     % Run batch creating a binarized sum of all masks 
     matlabbatch{1}.spm.util.imcalc.input = inputs_v1;
@@ -130,8 +153,8 @@ gr_mask_name = 'group_task-MultimodalReadSpeech_space-IXI549Space_FWHM-2_node-mv
     %clear sub-parts of V1 to avoid confusion in future ROI-grabbing. 
     %Most likely you'll never split it anyway.
     for i = 1:length(inputs_v1)
-       delete(inputs_v1{i})
-       delete(strrep(inputs_v1{i}, '.nii','.json'))
+      delete(inputs_v1{i})
+      delete(strrep(inputs_v1{i}, '.nii','.json'))
     end
     
 

@@ -28,29 +28,30 @@ opt.saveROI = true;
 %                 '15', '17', '18', '19' };
             
 % this one only for tact
-%opt.subjects = {'blind01'};
+opt.subjects = {'blind01'};
 
 %opt.subjects = {'blind01', 'sighted01'}; %testing one for each group first? 
 %opt.subjects = {'blind01', 'blind02','blind03','blind03','blind04','blind05',...
 %    'blind06','blind07','blind08','blind09','blind10','blind11','blind12',...
 %    'blind13','blind14','blind15','blind16','blind17','blind18','blind19','blind20'}; 
  
-opt.subjects = {'sighted01', 'sighted02','sighted03','sighted03','sighted04','sighted05',...
-    'sighted06','sighted07','sighted08','sighted09','sighted10','sighted11','sighted12',...
-    'sighted13','sighted14','sighted15','sighted16','sighted17','sighted18','sighted19','sighted20'}; 
+%opt.subjects = {'sighted01', 'sighted02','sighted03','sighted03','sighted04','sighted05',...
+%    'sighted06','sighted07','sighted08','sighted09','sighted10','sighted11','sighted12',...
+%    'sighted13','sighted14','sighted15','sighted16','sighted17','sighted18','sighted19','sighted20'}; 
 
 
 %opt.roiList = {'lexVWFA', 'perVWFA'}; 
-
-% Radius of the sphere around the peak
 %opt.radius = 7; %mm
+%opt.roiPeaks = {
+%     [-39 -71 -8],...
+%     [-42 -58 -10]};
+% Radius of the sphere around the peak
+
 
 
 % get individual coordinates
 %individual = roi_getMNICoords(opt.subjects);
-%opt.roiPeaks = {
-%     [-39 -71 -8],...
-%     [-42 -58 -10]};
+
 
 opt.roiList = {'cVWFA'};
 opt.radius = 12;
@@ -62,7 +63,7 @@ for iSub = 1:length(opt.subjects)
     % Get subject number
     subName = ['sub-', num2str(opt.subjects{iSub})];
     
-    mkdir(fullfile(opt.dir.rois, subName, 'roi'))
+    %mkdir(fullfile(opt.dir.rois, subName, 'roi'))
 
     % for each region this subject has
     for iReg = 1:numel(opt.roiList)
@@ -78,7 +79,7 @@ for iSub = 1:length(opt.subjects)
                 %case 2, regName = 'perVWFA';
             end
 
-            for rad = 10
+            for rad = opt.radius
                 % Set up bids-like name
                 bidslikeName = [subName,'_','space-IXI549Space','_', ...
                     'label-',regName,'_','radius-',num2str(rad),'mm','_mask'];

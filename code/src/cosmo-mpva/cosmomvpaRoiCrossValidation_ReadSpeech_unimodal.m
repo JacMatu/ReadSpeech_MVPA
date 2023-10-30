@@ -1,6 +1,6 @@
 % cosmo MVPA
 
-function test_FEATURESEL_cosmomvpaRoiCrossValidation_ReadSpeech(opt)
+function cosmomvpaRoiCrossValidation_ReadSpeech_unimodal(opt)
 
 % be very verbose please
 cosmo_warning('off')

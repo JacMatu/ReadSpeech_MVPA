@@ -126,7 +126,7 @@ end
 % Initial tests say beta is better, but maybe plot it against T MAPS also? 
 opt.cosmomvpa.ffxResults = {'beta'};%{'beta'}; 
 
-test_FEATURESEL_cosmomvpaRoiCrossValidation_ReadSpeech(opt); % ADJUSTED?
+cosmomvpaRoiCrossValidation_ReadSpeech_unimodal(opt); % ADJUSTED?
 
 % set which type of ffx results you want to use
 %opt.cosmomvpa.ffxResults = {'tmap'};

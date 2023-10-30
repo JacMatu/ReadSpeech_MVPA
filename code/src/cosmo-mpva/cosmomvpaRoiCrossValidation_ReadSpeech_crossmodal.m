@@ -273,46 +273,61 @@ for iSub = 1:numel(opt.subjects)
 
                         
                     %% Confusion matrices    
-%                         ConfMat = sum(cosmo_confusion_matrix(ds.sa.targets,pred), 3);
-%                         
-%                         ConfMatName = fullfile(opt.cosmomvpa.pathOutput, ...
-%                             'confusion_matrices',...
-%                             ['sub-', opt.subjects{iSub}, ...
-%                             '_task-', opt.taskName, ...
-%                             '_label-', roiName, ...
-%                             '_desc-smth', num2str(opt.cosmomvpa.funcFWHM), ...
-%                             '_ffx-', opt.cosmomvpa.ffxResults{1}, ...
-%                             '_featureRatio-', 'WorstSubjectPerROI', ...
-%                             '_date-', datestr(now, 'yyyymmddHHMM'), ...
-%                             '_desc-', [TrainTestSplit{iModality},'_',conditionsToTest{iConditionToTest}],...
-%                             '_mvpa_ConfMat.mat' ]);
-%                         
-%                         
-%                         save(ConfMatName, 'ConfMat');
+                        ConfMat = sum(cosmo_confusion_matrix(ds_sel.sa.targets,pred), 3);
+                        
+                        ConfMatName = fullfile(opt.cosmomvpa.pathOutput, ...
+                            'confusion_matrices',...
+                            ['sub-', opt.subjects{iSub}, ...
+                            '_task-', opt.taskName, ...
+                            '_label-', roiName, ...
+                            '_desc-smth', num2str(opt.cosmomvpa.funcFWHM), ...
+                            '_ffx-', opt.cosmomvpa.ffxResults{1}, ...
+                            '_featureRatio-', 'WorstSubjectPerROI', ...
+                            '_date-', datestr(now, 'yyyymmddHHMM'), ...
+                            '_desc-', [TrainTestSplit{iModality},'_',conditionsToTest{iConditionToTest}],...
+                            '_mvpa_ConfMat.mat' ]);
+                        
+                        
+                        save(ConfMatName, 'ConfMat');
                         %% PERMUTATION PART - ASK ALICE FOR SOLUTION!
                         
 %                         if opt.mvpa.permutate  == 1
                             % number of iterations
-                          %  nbIter = 100;
+                            nbIter = 100;
                             
                             % allocate space for permuted accuracies
-                          %  acc0 = zeros(nbIter, 1);
+                            acc0 = zeros(nbIter, 1);
                             
                             % make a copy of the dataset
-                          %  ds0 = ds_sel;
+                            ds0 = ds_sel;
                             
                             % for _niter_ iterations, reshuffle the labels and compute accuracy
                             % Use the helper function cosmo_randomize_targets
-                          %  for k = 1:nbIter
-                          %      ds0.sa.targets = cosmo_randomize_targets(ds_sel);
+                            for k = 1:nbIter
                                 
-                           %     [~, acc0(k)] = cosmo_crossvalidate(ds0, ...
-                         %           @cosmo_meta_feature_selection_classifier, ...
-                           %         partitions, opt.cosmomvpa);
+                                % This randomization doesn't work for
+                                % crossmodal decoding
+                                % ds0.sa.targets = cosmo_randomize_targets(ds_sel);
                                 
-                          %  end
+                                % Use this approach instead: randomize chunk by chunk and separating modalities
+                                for iChunk=1:max(ds0.sa.chunks)
+                                    for iTestModality = 1:max(ds0.sa.modality)
+                                        
+                                        ds0.sa.targets(ds0.sa.chunks==iChunk & ds0.sa.modality==iTestModality) = Shuffle(ds0.sa.targets(ds0.sa.chunks==iChunk & ds0.sa.modality==iTestModality));
+                                    
+                                    end
+                                end
+                                
+                                [~, acc0(k)] = cosmo_crossvalidate(ds0, ...
+                                    @cosmo_meta_feature_selection_classifier, ...
+                                    partitions, opt.cosmomvpa);
+                                
+                            end
                             
-                          %  p = sum(accuracy < acc0) / nbIter;     
+                            
+                            
+                            
+                            p = sum(accuracy < acc0) / nbIter;     
                        
                             
                             
@@ -326,9 +341,9 @@ for iSub = 1:numel(opt.subjects)
                             opt.cosmomvpa.ffxResults{iFfxResult}, ...
                             conditionsToTest{iConditionToTest}, ...
                             TrainTest, ...
-                            accuracy);%, ...
-                         %   acc0, ...
-                         %   p);    
+                            accuracy, ...
+                            acc0, ...
+                            p);    
  %%                
 
                         count = count + 1;
@@ -382,7 +397,7 @@ end
 
 
 function  accu = storeResults(accu, count, subID, roiName, ...
-    roiDimension, mask_size,  featureRatio, ffxResult, conditionName,TrainTest,accuracy)%, acc0, p)
+    roiDimension, mask_size,  featureRatio, ffxResult, conditionName,TrainTest,accuracy, acc0, p)
  
 
     % store results
@@ -395,8 +410,8 @@ function  accu = storeResults(accu, count, subID, roiName, ...
     accu(count).conditions = conditionName;
     accu(count).TrainTest = TrainTest;
     accu(count).accuracy = accuracy;
-    %accu(count).permutation = acc0';
-    %accu(count).pValue = p;
+    accu(count).permutation = acc0';
+    accu(count).pValue = p;
     %accu(count).predictors = pred;
 
 end

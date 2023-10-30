@@ -22,8 +22,8 @@
 % to the group-level null distribution. This was done by calculating the proportion of observations
 % in the null distribution that had a classification accuracy higher than the one obtained in the real test.
 
-% step4:
-% To account for the multiple comparisons, all p values were corrected using false discovery rate (FDR) correction
+%NOTE: THESE P VALUES ARE UNCORRECTED FOR MULTIPLE COMPARISONS. MAKE SURE
+%TO ADDITIONALLY RUN `ReadSpeech_GroupStats_BHFDR.m` to account for it.
 
 clc;
 clear;
@@ -42,6 +42,7 @@ decodingCondition = {'WordPseudoword', 'WordControl', 'PseudowordControl'};
 decodingModality = {'reading', 'speech'};
 
 roiList = {'Broca', 'FG2', 'FG4', 'MTG', 'V1'};
+%roiList = {'Broca'};
 
 subGroup = {'blind', 'sighted'};
 
@@ -54,8 +55,7 @@ smooth = 2;
 
 
 % number of iterations for group level null distribution
-%nbIter = 10000;
-nbIter = 1000;
+nbIter = 10000;
 
 % Setup the structure for p values! - MAYBE THAT CAN BE OMMITED, IT's JUST
 % VISUALIZATION OF THE FINAL P VALUES
@@ -157,49 +157,34 @@ for iGr = 1:numel(subGroup)
                 
                 for iIter = 1:nbIter
                     
-                    for iAccu = 1:length(accu)
+                    %for iAccu = 1:length(accu)
+                    
+                    for iSub = 1:length(subList)
                         
-                        for iSub = 1:length(subList)
-                            
-                            subID = subList(iSub);
-                            
-                            if strcmp(char({accu(iAccu).sub}.'), char(subID)) == 1
-                                
-                                if strcmp(char({accu(iAccu).ffxResults}.'), im) == 1
-                                    
-                                    %check if all the parameters and conditions match
-                                    
-                                    if strcmp(string({accu(iAccu).modality}.'), decodingModality{iMod})==1 %CHANGED THIS TO MODALITY
-                                        
-                                        if strcmp(string({accu(iAccu).conditions}.'), decodingCondition{iCond})==1
-                                            
-                                            if strcmp(string({accu(iAccu).roiArea}.'),roiLabel) == 1
-                                                
-                                                %read the subject level permutations = accu(iAccu).permutation;
-                                                %pick one decoding accuracy randomly with replacement
-                                                
-                                                if iIter == 1
-                                                    fprintf('sapmling from: %s sub-%s %s %s \n\n', ...
-                                                        accu(iAccu).roiArea, ...
-                                                        accu(iAccu).sub, ...
-                                                        accu(iAccu).ffxResults, ...
-                                                        accu(iAccu).modality)
-                                                end
-                                                
-                                                
-                                                subSamp(iSub, iIter) = datasample(accu(iAccu).permutation, 1);
-                                                
-                                            end
-                                            
-                                        end
-                                        
-                                    end
-                                    
-                                end
-                                
-                            end
-                            
+                        subID = subList(iSub);
+                                 
+                        %FIND THE PROPER ROW FROM THE GROUP accu for this
+                        %subject, ffxResult, modality, condition & ROI
+                        curr_index = find(strcmp({accu.sub}, char(subID))==1 & ...
+                            strcmp({accu.ffxResults}, im)==1 & ...
+                            strcmp({accu.modality}, decodingModality{iMod})==1 & ...
+                            strcmp({accu.conditions}, decodingCondition{iCond})==1 & ...
+                            strcmp({accu.roiArea}, roiLabel)==1);
+                        
+                        
+                        if iIter == 1
+                            fprintf('sampling from: %s sub-%s %s %s \n\n', ...
+                                accu(curr_index).roiArea, ...
+                                accu(curr_index).sub, ...
+                                accu(curr_index).ffxResults, ...
+                                accu(curr_index).modality,...
+                                accu(curr_index).conditions)
                         end
+                        
+                        % Read the random value from permutations with
+                        % replacement
+                        subSamp(iSub,iIter) = datasample(accu(curr_index).permutation,1);
+                        
                         
                     end
                     
@@ -225,6 +210,7 @@ for iGr = 1:numel(subGroup)
                 subAccu=zeros(length(subList),1);
                 
                 %subObsPVal=zeros(length(subList),1);
+                
                 
                 for iAccu=1:length(accu)
                     
@@ -269,79 +255,12 @@ for iGr = 1:numel(subGroup)
                 
                 
             end
+            
         end
     end
     
 end
 
-%% STEP 4: correct the obtained p-values
-    %Typically it's easy to use mafrd function, but it requires a
-    %bioinformatics matlab toolbox licence: 
-    
-    % function mafdr([vector of pvalues], BHFDR, 'true') % from Stefania
-    %fdrCorrPVal = mafdr(subObsPVal, 'BHFDR', 'true');
-    
-    % "Free" solution
-    % try using fdr_bh function from matlab file exchange
-    % https://www.mathworks.com/matlabcentral/fileexchange/27418-fdr_bh
-    % added to code/lib!
-    % Usage:
-    %  >> [h, crit_p, adj_ci_cvrg, adj_p]=fdr_bh(pvals,q,method,report);
-   
-    % OR IF YOU JUST WANT ADJUSTED P VALUES WITH DEFAULTS
-    %[~, ~, ~,  p_adj] = fdr_bh(p_vector_or_matrix);
-    % Add FDR function from MATLAB FORUM, no mafdr, toolbox licence missing :(
-    addpath('/Volumes/Slim_Reaper/Projects/Language_MVPA/code/lib/fdr_bh');
-    
-    
-
-    % Grab all P values to a one big matrix with 1 row per group/modality
-    % with 5 rois x 3 conditions per row (roi1 con1 2 3, roi2 con1 2 3 ...)
-
-    
-    puncorr_matrix = [struct2array(PvaluesUncorr.blind.reading);...
-        struct2array(PvaluesUncorr.blind.speech);...
-        struct2array(PvaluesUncorr.sighted.reading);...
-        struct2array(PvaluesUncorr.sighted.speech)];
-    
-    % Correct the p values with FDR: think about the size of the family :)
-    bh_fdr_family_size = 60;
-    
-    [~, ~, ~,  p_adj60] = fdr_bh(puncorr_matrix);
-    
-    
-    % LOOP TO WRITE FDR CORRECTED VALUES BACK TO A STRUCT SIMILAR TO
-    % PValuesUncorr
-    
-    start_row = 1;
-    for iGr=1:numel(subGroup)
-        
-        for iMod=1:numel(decodingModality)
-            
-            
-            
-            for iRoi = 1:numel(roiList)
-                
-                col = 3* iRoi - 2; %starting column in the vector (previous ROI + 3)
-                vec_temp = zeros(1,numel(decodingCondition));
-                
-                for iCond = 1:numel(decodingCondition)
-                    
-                    vec_temp(iCond) = p_adj60(start_row, col); %Grab 1 p value/condition for this ROI and add it to a vector
-                    col = col+1;
-                    
-                end
-                
-                PvaluesBHFDR.(subGroup{iGr}).(decodingModality{iMod}).(roiList{iRoi}) = vec_temp;
-                
-                %start_col = start_col + 3;
-                
-            end
-            
-            start_row = start_row + 1;
-            
-        end
-    end
 
 %% STEP 5 save the outout
     
@@ -350,13 +269,9 @@ end
     % set output folder/name
     pathOutput='/Volumes/Slim_Reaper/Projects/Language_MVPA/outputs/derivatives/cosmo-mvpa/task-MultimodalReadSpeech_space-IXI549Space_FWHM-2_node-mvpa6betas/JuBrain/unimodal';
     
+    nameOutput = ['INDX_Cosmo_stats_unimodal_',decodTitle,'_NIter_',num2str(nbIter),'_uncorr'];
+    
     %Uncorr p values
-    save(fullfile(pathOutput, ['Cosmo_stats_unimodal_',decodTitle,'_', '_uncorr']), 'PvaluesUncorr');
-   
-    %FDR-corr p values
-    save(fullfile(pathOutput, ['Cosmo_stats_unimodal_',decodTitle,'_', '_BHFDR_', bh_fdr_family_size]), 'PvaluesBHFDR');
-
+    save(fullfile(pathOutput, nameOutput), 'PvaluesUncorr');
     
-    
-
 toc

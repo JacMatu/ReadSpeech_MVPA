@@ -1,6 +1,8 @@
 %% statistical significance in mvpa
 % non-parametric technique by combining permutations and bootstrapping
 
+% GENERAL COMMENT FROM JM?
+
 % step1:
 % For each subject, the labels of the different conditions (eg. motion_vertical and motion_horizontal) were permuted,
 % and the same decoding analysis was performed.
@@ -20,8 +22,8 @@
 % to the group-level null distribution. This was done by calculating the proportion of observations
 % in the null distribution that had a classification accuracy higher than the one obtained in the real test.
 
-% step4:
-% To account for the multiple comparisons, all p values were corrected using false discovery rate (FDR) correction
+%NOTE: THESE P VALUES ARE UNCORRECTED FOR MULTIPLE COMPARISONS. MAKE SURE
+%TO ADDITIONALLY RUN `ReadSpeech_GroupStats_BHFDR.m` to account for it.
 
 clc;
 clear;
@@ -40,6 +42,7 @@ decodingCondition = {'WordPseudoword', 'WordControl', 'PseudowordControl'};
 decodingModality = {'reading', 'speech'};
 
 roiList = {'Broca', 'FG2', 'FG4', 'MTG', 'V1'};
+%roiList = {'Broca'};
 
 subGroup = {'blind', 'sighted'};
 
@@ -52,18 +55,18 @@ smooth = 2;
 
 
 % number of iterations for group level null distribution
-%nbIter = 10000;
-nbIter = 10;
+nbIter = 1000;
 
+%subObsPVal = zeros(20,nbIter);
 % Setup the structure for p values! - MAYBE THAT CAN BE OMMITED, IT's JUST
-% PREALOCATION
+% VISUALIZATION OF THE FINAL P VALUES
 
 % for g = 1:numel(subGroup)
 %     for m = 1:numel(decodingModality)
 %         for r = 1:numel(roiList)
 %             for c = 1:numel(decodingCondition)
 %                 
-%                 Pvalues.(subGroup{g}).(decodingModality{m}).(roiList{r}).(decodingCondition{c}) = [];
+%                 PvaluesUncorr.(subGroup{g}).(decodingModality{m}).(roiList{r}).(decodingCondition{c}) = [];
 %                 
 %             end
 %         end
@@ -160,12 +163,12 @@ for iGr = 1:numel(subGroup)
                         for iSub = 1:length(subList)
                             
                             subID = subList(iSub);
+                           
+                           
                             
                             if strcmp(char({accu(iAccu).sub}.'), char(subID)) == 1
                                 
                                 if strcmp(char({accu(iAccu).ffxResults}.'), im) == 1
-                                    
-                                    %check if all the parameters and conditions match
                                     
                                     if strcmp(string({accu(iAccu).modality}.'), decodingModality{iMod})==1 %CHANGED THIS TO MODALITY
                                         
@@ -177,7 +180,7 @@ for iGr = 1:numel(subGroup)
                                                 %pick one decoding accuracy randomly with replacement
                                                 
                                                 if iIter == 1
-                                                    fprintf('sapmling from: %s sub-%s %s %s \n\n', ...
+                                                    fprintf('sampling from: %s sub-%s %s %s \n\n', ...
                                                         accu(iAccu).roiArea, ...
                                                         accu(iAccu).sub, ...
                                                         accu(iAccu).ffxResults, ...
@@ -258,58 +261,32 @@ for iGr = 1:numel(subGroup)
                 % If you want a detailed struct with each condition bound
                 % to a single p value
                 %subObsPVal = sum(mean(subAccu)<groupNullDistr)/nbIter;
-                %Pvalues.(subGroup{iGr}).(decodingModality{iMod}).(roiList{iRoi}).(decodingCondition{iCond}) = subObsPVal;
+                %PvaluesUncorr.(subGroup{iGr}).(decodingModality{iMod}).(roiList{iRoi}).(decodingCondition{iCond}) = subObsPVal;
                 
                 subObsPVal(iCond) = sum(mean(subAccu)<groupNullDistr)/nbIter;
-                Pvalues.(subGroup{iGr}).(decodingModality{iMod}).(roiList{iRoi}) = subObsPVal;
+                
                 
                 disp('step 3 done')
                 
                 
             end
+            PvaluesUncorr.(subGroup{iGr}).(decodingModality{iMod}).(roiList{iRoi}) = subObsPVal;
         end
     end
     
 end
 
-%% STEP 4: correct the obtained p-values
-    %Typically it's easy to use mafrd function, but it requires a
-    %bioinformatics matlab toolbox licence: 
-    
-    % function mafdr([vector of pvalues], BHFDR, 'true') % from Stefania
-    %fdrCorrPVal = mafdr(subObsPVal, 'BHFDR', 'true');
-    
-    % "Free" solution
-    % try using fdr_bh function from matlab file exchange
-    % https://www.mathworks.com/matlabcentral/fileexchange/27418-fdr_bh
-    % added to code/lib!
-    % Usage:
-    %  >> [h, crit_p, adj_ci_cvrg, adj_p]=fdr_bh(pvals,q,method,report);
-   
-    % OR IF YOU JUST WANT ADJUSTED P VALUES WITH DEFAULTS
-    %[~, ~, ~,  p_adj] = fdr_bh(p_vector_or_matrix);
-    % Add FDR function from MATLAB FORUM, no mafdr, toolbox licence missing :(
-    addpath('/Volumes/Slim_Reaper/Projects/Language_MVPA/code/lib/fdr_bh');
-    
-    
-
-    
-
 
 %% STEP 5 save the outout
     
-    %TBA: maybe some basic metadata about the decoding? 
+    %TBA: maybe some basic metadata about the decoding to the file title? 
 
     % set output folder/name
     pathOutput='/Volumes/Slim_Reaper/Projects/Language_MVPA/outputs/derivatives/cosmo-mvpa/task-MultimodalReadSpeech_space-IXI549Space_FWHM-2_node-mvpa6betas/JuBrain/unimodal';
     
+    nameOutput = ['IFs_Cosmo_stats_unimodal_',decodTitle,'_NIter_',num2str(nbIter),'_uncorr'];
+    
     %Uncorr p values
-    save(fullfile(pathOutput, ['Cosmo_stats_unimodal_',decodTitle,'_', '_uncorr']), 'Pvalues');
+    save(fullfile(pathOutput, nameOutput), 'PvaluesUncorr');
     
-    %FDR-corr p values
-    
-
-    
-    
-
 toc

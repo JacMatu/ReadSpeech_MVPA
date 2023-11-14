@@ -122,3 +122,173 @@ crossmodal_mvpa_plot_ReadSpeech <- function(plot_data, summary_data){
               legend.justification = 0.60)
     
 }
+
+
+#plotting functions for univariate ROIs
+
+univariate_fMRI_ROI_points <- function(data, roi, sub_group) {
+    
+    #Prepare triple colour schemes for groups
+    blind_triple_colors <- c(brewer.pal(3, "Pastel2")[1], 
+                             brewer.pal(3, "Set2")[1],   
+                             brewer.pal(3, "Dark2")[1],  
+                             brewer.pal(3, "Pastel2")[1], 
+                             brewer.pal(3, "Set2")[1],   
+                             brewer.pal(3, "Dark2")[1])
+    
+    sighted_triple_colors <- c(brewer.pal(3, "Pastel2")[2], 
+                               brewer.pal(3, "Set2")[2],   
+                               brewer.pal(3, "Dark2")[2],  
+                               brewer.pal(3, "Pastel2")[2], 
+                               brewer.pal(3, "Set2")[2],   
+                               brewer.pal(3, "Dark2")[2])
+    
+    # Y Axis label for BOLD 
+    bold_label <- "BOLD contrast estimate (a.u.)"
+    
+    # Prepare legend labels? 
+    legend_labels <- if(sub_group == "Blind"){
+        c("Control (Blind)", "Pseudowords (Blind)", "Words (Blind)")
+    } else if (sub_group == "Sighted"){
+        c("Control (Sighted)", "Pseudowords (Sighted)", "Words (Sighted)")
+    }
+    
+    #Main plot
+    data %>% 
+        filter(Group == sub_group) %>% 
+        filter(ROI == roi) %>% 
+        mutate(Condition = factor(Condition, levels=c("Control", "Pseudowords", "Words"))) %>%
+        ggplot(aes(x = Modality, y = Contrast_Estimate, group = interaction(Modality, Condition), 
+                   colour = Condition)) +
+        geom_hline(yintercept = 0, linetype = "dotted") +
+        geom_point(size = 3,
+                   alpha = 0.8,
+                   position = position_jitterdodge(jitter.width=0.2,
+                                                   dodge.width = 1)) +
+        stat_summary(fun = "mean",
+                     geom = "crossbar",
+                     position = position_dodge(width = 1),
+                     width = .75,
+                     size = 1,
+                     show.legend = FALSE) +
+        stat_summary(fun.max = function(x) mean(x) + (sd(x)/sqrt(20)),
+                     fun.min = function(x) mean(x) - (sd(x)/sqrt(20)),
+                     geom = "errorbar",
+                     position = position_dodge(width = 1),
+                     width = .15,
+                     size = 0.8,
+                     color = "black",
+                     show.legend = FALSE) +
+        scale_color_manual(values = if(sub_group == "Blind"){
+            blind_triple_colors
+        } else if (sub_group == "Sighted"){
+            sighted_triple_colors
+        },
+        labels = legend_labels) +
+        
+        scale_y_continuous(limits = c(-15, 20), 
+                           name = bold_label) +
+        scale_x_discrete(name = "Modality") +
+        theme_cowplot(font_size = 20, font_family = "Arial") +
+        if(sub_group == "Blind") {
+            theme(axis.line = element_line(colour = 'black', size = 1),
+                  axis.ticks = element_line(colour = 'black', size = 1),
+                  axis.text = element_text(face="bold"),
+                  #    legend.position = "none",
+                  legend.title = element_blank())}
+    else if(sub_group == "Sighted") {
+        theme(axis.line = element_line(colour = 'black', size = 1),
+              axis.ticks = element_line(colour = 'black', size = 1),
+              axis.text = element_text(face="bold"),
+              axis.line.y = element_line(colour = 'black', size = 0),
+              axis.text.y=element_blank(),
+              axis.ticks.y=element_blank(),
+              axis.title.y = element_blank(),
+              # legend.position = "none",
+              legend.title = element_blank())
+    }
+    
+}
+
+univariate_fMRI_ROI_bars <- function(data, roi, sub_group) {
+    
+    #Prepare triple colour schemes for groups
+    blind_triple_colors <- c(brewer.pal(3, "Pastel2")[1], 
+                             brewer.pal(3, "Set2")[1],   
+                             brewer.pal(3, "Dark2")[1],  
+                             brewer.pal(3, "Pastel2")[1], 
+                             brewer.pal(3, "Set2")[1],   
+                             brewer.pal(3, "Dark2")[1])
+    
+    sighted_triple_colors <- c(brewer.pal(3, "Pastel2")[2], 
+                               brewer.pal(3, "Set2")[2],   
+                               brewer.pal(3, "Dark2")[2],  
+                               brewer.pal(3, "Pastel2")[2], 
+                               brewer.pal(3, "Set2")[2],   
+                               brewer.pal(3, "Dark2")[2])
+    
+    # Y Axis label for BOLD 
+    bold_label <- "BOLD contrast estimate (a.u.)"
+    
+    # Prepare legend labels? 
+    legend_labels <- if(sub_group == "Blind"){
+        c("Control (Blind)", "Pseudowords (Blind)", "Words (Blind)")
+    } else if (sub_group == "Sighted"){
+        c("Control (Sighted)", "Pseudowords (Sighted)", "Words (Sighted)")
+    }
+    
+    #Main plot
+    data %>% 
+        ## SUBSET THE DATA
+        filter(Group == sub_group) %>% 
+        filter(ROI_label == roi) %>% 
+        mutate(Condition = factor(Condition, levels=c("Control", "Pseudowords", "Words"))) %>%
+        ## ADD SUMMARIES - not needed for barplot?
+        group_by(Modality, Condition) %>% 
+        summarise(mean = mean(ContrastEstimate), sem = sd(ContrastEstimate)/sqrt(n())) %>% 
+        ungroup() %>% 
+        ## PLOT THAT PLOT
+        ggplot(aes(x = Modality, y = mean, group = interaction(Modality, Condition), 
+                   color = Condition)) +
+        geom_hline(yintercept = 0, linetype = "dotted") +
+        geom_bar(stat = "summary",
+                 fun = "mean",
+                 position= "dodge",
+                 color = "black",
+                 size = 1,
+                 aes(fill = Condition)) +
+        geom_errorbar(aes(ymin = mean-sem, ymax = mean+sem),
+                      position=position_dodge(0.9), 
+                      width = 0.2, 
+                      size = 1,
+                      colour = 'black') +
+        scale_fill_manual(values = if(sub_group == "Blind"){
+            blind_triple_colors
+        } else if (sub_group == "Sighted"){
+            sighted_triple_colors
+        },
+        labels = legend_labels) +
+        scale_y_continuous(name = bold_label
+                           #limits = c(-15, 20), 
+        ) +
+        scale_x_discrete(name = "Modality") +
+        theme_cowplot(font_size = 20, font_family = "Arial") +
+        if(sub_group == "Blind") {
+            theme(axis.line = element_line(colour = 'black', size = 1),
+                  axis.ticks = element_line(colour = 'black', size = 1),
+                  axis.text = element_text(face="bold"),
+                  #    legend.position = "none",
+                  legend.title = element_blank(),
+                  legend.position = 'bottom')}
+    else if(sub_group == "Sighted") {
+        theme(axis.line = element_line(colour = 'black', size = 1),
+              axis.ticks = element_line(colour = 'black', size = 1),
+              axis.text = element_text(face="bold"),
+              axis.line.y = element_line(colour = 'black', size = 0),
+              axis.text.y=element_blank(),
+              axis.ticks.y=element_blank(),
+              axis.title.y = element_blank(),
+              legend.position = 'bottom',
+              legend.title = element_blank())
+    }
+}

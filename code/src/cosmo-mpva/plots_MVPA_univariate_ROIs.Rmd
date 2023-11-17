@@ -121,92 +121,45 @@ df.ROI.summaries <-  df.ROI.clean %>%
 df.ROI.summaries
 ```
 
-BAR PLOT TESTING 
-```{r plot test, warning = FALSE}
-#load plotting functions
 
-# REMEMBER THAT COLORS FOR BARS ARE CODED AS 'FILL' NOT 'COLOUR'
-# Colour = border
-# so for bars its scale_fill_manual not scale_colour_manual! 
-
+TEST BAR PLOTS WITH 1 FUNCTION FOR BOTH GROUPS!
+```{r}
 source('/Volumes/Slim_Reaper/Projects/Language_MVPA/code/src/cosmo-mpva/mvpa_plot_functions.R')
 
-blind_triple_colors <- c(rep(c(brewer.pal(3, "Pastel2")[1], 
-                         brewer.pal(3, "Set2")[1],   
-                         brewer.pal(3, "Dark2")[1]),2))
+#For each roi in the DF 
+roi_list <- unique(df.ROI.clean$ROI_label)
 
-sighted_triple_colors <- c(rep(c(brewer.pal(3, "Pastel2")[2], 
-                           brewer.pal(3, "Set2")[2],   
-                           brewer.pal(3, "Dark2")[2]),2))
-
-
-
-plot.blind.Broca <- univariate_fMRI_ROI_bars(df.ROI.clean, 
-                                             roi = 'Broca', 
-                                             sub_group = 'Blind') 
-
-plot.blind.Broca
-```
-
-
-PLOT LOOP! 
-```{r Bar Plots}
-
-#Get some prerequisits
-source('/Volumes/Slim_Reaper/Projects/Language_MVPA/code/src/cosmo-mpva/mvpa_plot_functions.R')
-dark_colors <- brewer.pal(n=3, name = "Dark2") 
-#light_colors <- brewer.pal(n=3, name = "Pastel2") 
-std.error <- function(x) sd(x)/sqrt(length(x))
-
-
-# HERE YOU ALSO HAVE MODALITIES!
-for (m in seq_along(modalities)){
-    for(r in seq_along(roi)){
-        for(g in seq_along(groups)){
-            
-            #Slice the df to get given roi, group & modality
-            plot_df <- mvpa_joined%>% 
-                filter(roiArea == roi[r],
-                       group == groups[g],
-                       modality == modalities[m]) 
-            
-            #Slice the average summary df 
-            accu_df <- mvpa_accuracy %>% 
-                filter(group == groups[g] & 
-                           modality == modalities[m] & 
-                           ffxResults == ffx &
-                           roiArea == roi[r])
-            
-            #make the basic plot with function
-            plot_temp <- unimodal_mvpa_plot_ReadSpeech(plot_df, accu_df) 
-            
-            #recolour the plot based on group
-            if (groups[g] == 'blind') {
-                
-                plot_temp <- plot_temp + 
-                    scale_color_manual(values = c(rep(dark_colors[1], 3)))
-                
-            } else if (groups[g] == 'sighted') {
-                
-                plot_temp <- plot_temp + 
-                    scale_color_manual(values = c(rep(dark_colors[2], 3)))
-            }
-            
-            # assign new name to the sub plot 
-            assign(paste0('plot_temp_', groups[g]), plot_temp)
-            rm(plot_temp)
-            
-        }
-        #PASTE THIS ROI AFTER BOTH GORUPS ARE DONE WITH PATCHWORK!
-        plot_joined_temp <- plot_temp_blind + plot_temp_sighted
-        
-        assign(paste('plot_unimodal', roi[r], modalities[m], sep = '_'), plot_joined_temp)
-        
-        rm(plot_temp_blind, plot_temp_sighted, plot_joined_temp)
-        
-    }
+# make a bar plot with 2 groups and equal Y axes
+for(i in seq_along(roi_list)){
+    
+    assign(paste0('plot.bar.roi.', roi_list[i]), 
+           univariate_fMRI_ROI_bars_both_gr(df.ROI.clean, 
+                                            roi = roi_list[i]))
 }
+
 ```
+
+
+TEST POINT PLOTS WITH 1 FUNCTION FOR BOTH GROUPS! 
+```{r}
+source('/Volumes/Slim_Reaper/Projects/Language_MVPA/code/src/cosmo-mpva/mvpa_plot_functions.R')
+
+#For each roi in the DF 
+roi_list <- unique(df.ROI.clean$ROI_label)
+
+#TEST
+#plot.point.test <- univariate_fMRI_ROI_points_both_gr(df.ROI.clean, roi = roi_list[1])
+
+# make a bar plot with 2 groups and equal Y axes
+for(i in seq_along(roi_list)){
+    
+    assign(paste0('plot.point.roi.', roi_list[i]), 
+           univariate_fMRI_ROI_points_both_gr(df.ROI.clean, 
+                                            roi = roi_list[i]))
+}
+
+```
+
 
 
 Maybe add plot saving?

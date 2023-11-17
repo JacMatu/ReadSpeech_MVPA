@@ -185,7 +185,6 @@ univariate_fMRI_ROI_points <- function(data, roi, sub_group) {
             sighted_triple_colors
         },
         labels = legend_labels) +
-        
         scale_y_continuous(limits = c(-15, 20), 
                            name = bold_label) +
         scale_x_discrete(name = "Modality") +
@@ -272,23 +271,191 @@ univariate_fMRI_ROI_bars <- function(data, roi, sub_group) {
                            #limits = c(-15, 20), 
         ) +
         scale_x_discrete(name = "Modality") +
-        theme_cowplot(font_size = 20, font_family = "Arial") +
-        if(sub_group == "Blind") {
-            theme(axis.line = element_line(colour = 'black', size = 1),
-                  axis.ticks = element_line(colour = 'black', size = 1),
-                  axis.text = element_text(face="bold"),
-                  #    legend.position = "none",
-                  legend.title = element_blank(),
-                  legend.position = 'bottom')}
-    else if(sub_group == "Sighted") {
+        #theme_cowplot(font_size = 20, font_family = "Arial") +
+    #     if(sub_group == "Blind") {
+    #         theme(axis.line = element_line(colour = 'black', size = 1),
+    #               axis.ticks = element_line(colour = 'black', size = 1),
+    #               axis.text = element_text(face="bold"),
+    #               #    legend.position = "none",
+    #               legend.title = element_blank(),
+    #               legend.position = 'bottom')}
+    # else if(sub_group == "Sighted") {
+    #     theme(axis.line = element_line(colour = 'black', size = 1),
+    #           axis.ticks = element_line(colour = 'black', size = 1),
+    #           axis.text = element_text(face="bold"),
+    #           axis.line.y = element_line(colour = 'black', size = 0),
+    #           axis.text.y=element_blank(),
+    #           axis.ticks.y=element_blank(),
+    #           axis.title.y = element_blank(),
+    #           legend.position = 'bottom',
+    #           legend.title = element_blank())
+    # }
+        theme_cowplot(font_family = "Arial") +
         theme(axis.line = element_line(colour = 'black', size = 1),
-              axis.ticks = element_line(colour = 'black', size = 1),
-              axis.text = element_text(face="bold"),
-              axis.line.y = element_line(colour = 'black', size = 0),
-              axis.text.y=element_blank(),
-              axis.ticks.y=element_blank(),
-              axis.title.y = element_blank(),
-              legend.position = 'bottom',
-              legend.title = element_blank())
+                            axis.ticks = element_line(colour = 'black', size = 1),
+                            axis.text = element_text(face="bold"),
+                            #    legend.position = "none",
+                            legend.title = element_blank(),
+                            legend.position = 'bottom')
+}
+
+
+#NOW THESE ARE PRETTY COOL! THEY MAKE SUBPLOTS FOR BOTH GROUP, PASTE THEM 
+#TOGETHER AND EQUALIZE THE Y AXES OF BOTH SUB-PLOTS TO BE IDENTICAL! 
+# YOU CAN CHOOSE BARPLOTS OR POINTS + MEAN/SD! 
+univariate_fMRI_ROI_bars_both_gr <- function(data, roi) {
+    
+    #Prepare triple colour schemes for groups
+    blind_triple_colors <- c(rep(c(brewer.pal(3, "Pastel2")[1], 
+                                   brewer.pal(3, "Set2")[1],   
+                                   brewer.pal(3, "Dark2")[1]),2))
+    
+    sighted_triple_colors <- c(rep(c(brewer.pal(3, "Pastel2")[2], 
+                                     brewer.pal(3, "Set2")[2],   
+                                     brewer.pal(3, "Dark2")[2]),2))
+    
+    # Y Axis label for BOLD 
+    bold_label <- "BOLD contrast estimate (a.u.)"
+    legend_labels <- c('Control', 'Pseudowords', 'Words')
+    
+    groups <- unique(data$Group)
+    
+    for(iGr in seq_along(groups)){
+        assign(paste0('p',iGr), 
+               #Main plot
+               data %>% 
+                   ## SUBSET THE DATA
+                   filter(Group == groups[iGr]) %>% 
+                   filter(ROI_label == roi) %>% 
+                   mutate(Condition = factor(Condition, levels=c("Control", "Pseudowords", "Words"))) %>%
+                   ## ADD SUMMARIES - not needed for barplot?
+                   group_by(Modality, Condition) %>% 
+                   summarise(mean = mean(ContrastEstimate), 
+                             sem = sd(ContrastEstimate)/sqrt(n()),
+                             .groups = 'keep') %>% 
+                   ungroup() %>% 
+                   ## PLOT THAT PLOT
+                   ggplot(aes(x = Modality, y = mean, group = interaction(Modality, Condition), 
+                              color = Condition)) +
+                   geom_hline(yintercept = 0, linetype = "dotted") +
+                   geom_bar(stat = "summary",
+                            fun = "mean",
+                            position= "dodge",
+                            color = "black",
+                            size = 1,
+                            aes(fill = Condition)) +
+                   geom_errorbar(aes(ymin = mean-sem, ymax = mean+sem),
+                                 position=position_dodge(0.9), 
+                                 width = 0.2, 
+                                 size = 1,
+                                 colour = 'black') +
+                   scale_fill_manual(values = if(iGr == 1){
+                       blind_triple_colors
+                   }else{
+                       sighted_triple_colors
+                   },labels = legend_labels) +
+                   ggtitle(label = groups[iGr]) +
+                   scale_x_discrete(name = "Modality") +
+                   theme_cowplot(font_family = "Arial") +
+                   theme(axis.line = element_line(colour = 'black', size = 1),
+                         axis.ticks = element_line(colour = 'black', size = 1),
+                         axis.text = element_text(face="bold"),
+                         #    legend.position = "none",
+                         legend.title = element_blank(),
+                         legend.position = 'bottom',
+                         #Center the plot title?
+                         plot.title = element_text(hjust = 0.5)))
     }
+        
+        #Hard-coded patchworking???
+        p_combined <- p1+p2
+
+        #Get y axis limits
+        p_ranges_y <- c(ggplot_build(p_combined[[1]])$layout$panel_scales_y[[1]]$range$range,
+                        ggplot_build(p_combined[[2]])$layout$panel_scales_y[[1]]$range$range)
+
+        #Update Y axes
+        p_updated <- p_combined & scale_y_continuous(name = bold_label,
+                                       limits = c(min(p_ranges_y), max(p_ranges_y)))
+            
+        return(p_updated)
+    
+}
+univariate_fMRI_ROI_points_both_gr <- function(data, roi) {
+    
+    #Prepare triple colour schemes for groups
+    blind_triple_colors <- c(rep(c(brewer.pal(3, "Pastel2")[1], 
+                                   brewer.pal(3, "Set2")[1],   
+                                   brewer.pal(3, "Dark2")[1]),2))
+    
+    sighted_triple_colors <- c(rep(c(brewer.pal(3, "Pastel2")[2], 
+                                     brewer.pal(3, "Set2")[2],   
+                                     brewer.pal(3, "Dark2")[2]),2))
+    
+    # Axis and legend labels
+    bold_label <- "BOLD contrast estimate (a.u.)"
+    legend_labels <- c('Control', 'Pseudowords', 'Words')
+    
+    groups <- unique(data$Group)
+    
+    for(iGr in seq_along(groups)){
+        assign(paste0('p',iGr), 
+               #Main plot
+               data %>% 
+                   ## SUBSET THE DATA
+                   filter(Group == groups[iGr]) %>% 
+                   filter(ROI_label == roi) %>% 
+                   mutate(Condition = factor(Condition, levels=c("Control", "Pseudowords", "Words"))) %>%
+                   ## PLOT THAT PLOT (summaries not needed, they are added as stat_summary)
+                   ggplot(aes(x = Modality, y = ContrastEstimate, group = interaction(Modality, Condition), 
+                              color = Condition)) +
+                   geom_hline(yintercept = 0, linetype = "dotted") +
+                   geom_point(size = 2,
+                              alpha = 0.8,
+                              position = position_jitterdodge(jitter.width=0.2,
+                                                              dodge.width = 1)) +
+                   stat_summary(fun = "mean",
+                                geom = "crossbar",
+                                position = position_dodge(width = 1),
+                                width = 0.95,
+                                size = 0.8,
+                                show.legend = FALSE) +
+                   stat_summary(fun.max = function(x) mean(x) + (sd(x)/sqrt(20)),
+                                fun.min = function(x) mean(x) - (sd(x)/sqrt(20)),
+                                geom = "errorbar",
+                                position = position_dodge(width = 1),
+                                width = .15,
+                                size = 0.8,
+                                color = "black",
+                                show.legend = FALSE) +
+                   scale_color_manual(values = if(iGr == 1){
+                       blind_triple_colors}else{
+                           sighted_triple_colors},
+                       labels = legend_labels) +
+                   ggtitle(label = groups[iGr]) +
+                   scale_x_discrete(name = "Modality") +
+                   theme_cowplot(font_family = "Arial") +
+                   theme(axis.line = element_line(colour = 'black', size = 1),
+                         axis.ticks = element_line(colour = 'black', size = 1),
+                         axis.text = element_text(face="bold"),
+                         #    legend.position = "none",
+                         legend.title = element_blank(),
+                         legend.position = 'bottom',
+                         #Center the plot title?
+                         plot.title = element_text(hjust = 0.5)))
+    }
+    
+    #Hard-coded patchworking???
+    p_combined <- p1+p2
+    
+    #Get y axis limits
+    p_ranges_y <- c(ggplot_build(p_combined[[1]])$layout$panel_scales_y[[1]]$range$range,
+                    ggplot_build(p_combined[[2]])$layout$panel_scales_y[[1]]$range$range)
+    
+    #Update Y axes
+    p_updated <- p_combined & scale_y_continuous(name = bold_label,
+                                                 limits = c(min(p_ranges_y), max(p_ranges_y)))
+    
+    return(p_updated)
+    
 }

@@ -28,16 +28,16 @@ opt.saveROI = true;
 %                 '15', '17', '18', '19' };
             
 % this one only for tact
-opt.subjects = {'blind01'};
+%opt.subjects = {'blind01'};
 
 %opt.subjects = {'blind01', 'sighted01'}; %testing one for each group first? 
 %opt.subjects = {'blind01', 'blind02','blind03','blind03','blind04','blind05',...
 %    'blind06','blind07','blind08','blind09','blind10','blind11','blind12',...
 %    'blind13','blind14','blind15','blind16','blind17','blind18','blind19','blind20'}; 
  
-%opt.subjects = {'sighted01', 'sighted02','sighted03','sighted03','sighted04','sighted05',...
-%    'sighted06','sighted07','sighted08','sighted09','sighted10','sighted11','sighted12',...
-%    'sighted13','sighted14','sighted15','sighted16','sighted17','sighted18','sighted19','sighted20'}; 
+opt.subjects = {'sighted01', 'sighted02','sighted03','sighted03','sighted04','sighted05',...
+    'sighted06','sighted07','sighted08','sighted09','sighted10','sighted11','sighted12',...
+    'sighted13','sighted14','sighted15','sighted16','sighted17','sighted18','sighted19','sighted20'}; 
 
 
 %opt.roiList = {'lexVWFA', 'perVWFA'}; 

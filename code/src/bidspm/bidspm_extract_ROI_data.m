@@ -35,8 +35,8 @@ opt.fwhm.preproc = '6';
 opt.fwhm.contrast = '0';
 
 %List ROI files
-opt.roi.list = cellstr(spm_select('List',fullfile(opt.dir.roi,'group'), '.*JuBrain.*.nii'));
-%opt.roi.list = cellstr(spm_select('List',fullfile(opt.dir.roi,'group'), '.*cVWFA.*.nii'));
+%opt.roi.list = cellstr(spm_select('List',fullfile(opt.dir.roi,'group'), '.*JuBrain.*.nii'));
+opt.roi.list = cellstr(spm_select('List',fullfile(opt.dir.roi,'group'), '.*VWFA.*.nii'));
 
 %List contrasts that define GLMs to extract the data from
 opt.stats.contrasts = {'ReadControl', 'ReadWord', 'ReadPseudoword', 'SpeechControl', 'SpeechWord', 'SpeechPseudoword'};
@@ -56,7 +56,8 @@ opt.stats.contrasts = {'ReadControl', 'ReadWord', 'ReadPseudoword', 'SpeechContr
 %iGr = 1; iRoi=1;iCon = 1;
 
 %This is your output csv file for all the ROIs, groups and conditions
-f=fopen(fullfile(opt.dir.gr_stats,'JuBrain_stats.csv'),'w');
+%f=fopen(fullfile(opt.dir.gr_stats,'JuBrain_stats.csv'),'w');
+f=fopen(fullfile(opt.dir.gr_stats,'cVWFA_stats.csv'),'w');
  
  
 for iGr = 1:numel(opt.sub.group)
@@ -103,9 +104,9 @@ for iGr = 1:numel(opt.sub.group)
            % fclose(f);
 
             % Rename the output file? 
-            fname = ['group-',opt.sub.group{iGr},'_',...
-                opt.roi.list{iRoi}(1:end-4),'_',...
-                opt.stats.contrasts{iCon},'_stats.csv'];
+            %fname = ['group-',opt.sub.group{iGr},'_',...
+            %    opt.roi.list{iRoi}(1:end-4),'_',...
+            %    opt.stats.contrasts{iCon},'_stats.csv'];
             
             %movefile(fullfile(opt.dir.gr_stats,'stats.csv'), ...
             %    fullfile(opt.dir.gr_stats, fname));

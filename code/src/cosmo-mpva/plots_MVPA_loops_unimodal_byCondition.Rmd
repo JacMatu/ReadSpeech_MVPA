@@ -56,6 +56,7 @@ cosmo_results <- '/Volumes/Slim_Reaper/Projects/Language_MVPA/outputs/derivative
 task_ReadSpeech <- paste0('task-MultimodalReadSpeech_space-IXI549Space_FWHM-',as.character(FWHM),'_node-mvpa6betas')
 
 decoding_label <- 'JuBrain'#'visfatlas' #'cVWFA' 'LexPerVWFA' 'JuBrain'
+#decoding_label <- 'cVWFA'#'visfatlas' #'cVWFA' 'LexPerVWFA' 'JuBrain'
 cosmo_results_path_ReadSpeech <- paste(cosmo_results, task_ReadSpeech,  decoding_label,
                                        'unimodal','accuracy', sep ='/')
 
@@ -187,5 +188,29 @@ for (m in seq_along(modalities)){
 ```
 
 
-Maybe add plot saving?
+SAVE THE PLOTS
+```{r}
+fig_dir <- paste(cosmo_results,task_ReadSpeech, decoding_label,'unimodal','plots/', sep = '/')
+
+#Create an output dir - if it already exists R only prints a warning!
+dir.create(fig_dir)
+#Overrride the ggsave function to use white bg
+ggsave <- function(..., bg = 'white') ggplot2::ggsave(..., bg = bg)
+
+#List TMS grid plots
+ggplot_list <- Filter(function(x) is(x, "ggplot"), mget(ls(pattern = "^plot_unimodal.*")))
+plot_list <- ls(pattern = "^plot_unimodal_.*")
+
+#Loop across main grids
+for(i in seq_along(ggplot_list)) {
+
+        ggsave(filename = paste0(fig_dir, plot_list[i], ".tiff"),
+               plot = ggplot_list[[i]],
+               units = "px",
+               height = 320,
+               width = 740,
+               dpi = 300,
+               scale = 5)
+}
+```
 

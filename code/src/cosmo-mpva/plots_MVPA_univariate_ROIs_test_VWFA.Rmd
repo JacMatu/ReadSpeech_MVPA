@@ -38,6 +38,7 @@ library(data.table)
 library(cowplot)
 library(RColorBrewer)
 library(patchwork)
+library(stringr)
 ```
 
 
@@ -53,7 +54,6 @@ groups <- c('blind', 'sighted') # blind or sighted
 # set te path to the task folder
 stats_dir <- '/Volumes/Slim_Reaper/Projects/Language_MVPA/outputs/derivatives/bidspm-stats'
 
-#decoding_label <- 'JuBrain'#'visfatlas' #'cVWFA' 'LexPerVWFA' 'JuBrain'
 decoding_label <- 'cVWFA'#'visfatlas' #'cVWFA' 'LexPerVWFA' 'JuBrain'
 
 roi_file_dir <- paste(stats_dir, 'derivatives','bidspm-groupStats', sep = '/')
@@ -108,6 +108,24 @@ df.ROI.clean <- df.ROI.raw %>%
 ```
 
 
+Test to get labels
+```{r}
+#Can you find a way to get a ROI name between "label-" and "_" that works both for spheres and atlases?
+
+# roi_atlas <- 'hemi-L_space-MNI_atlas-JuBrain_label-Broca_mask.nii'
+# roi_sphere <- 'hemi-L_space-IXI549Space_label-cVWFA_radius-10mm_mask.nii'
+# 
+## ORIGINAL SOLUTION FROM STACK OVERFLOW
+# a <- " anything goes here, STR1 GET_ME STR2, anything goes here"
+# res <- str_match(a, "STR1\\s*(.*?)\\s*STR2")
+# res[,2]
+# 
+# res_atlas <- str_match(roi_atlas, "_label-\\s*(.*?)\\s*_")[,2]
+# res_roi <-str_match(roi_sphere, "_label-\\s*(.*?)\\s*_")[,2]
+
+```
+
+
 Summarize BOLD levels for descriptive purposes
 ```{r SUmmary Stats}
 df.ROI.summaries <-  df.ROI.clean %>%
@@ -123,7 +141,7 @@ df.ROI.summaries
 ```
 
 
-BAR PLOTS WITH 1 FUNCTION FOR BOTH GROUPS!
+TEST BAR PLOTS WITH 1 FUNCTION FOR BOTH GROUPS!
 ```{r}
 source('/Volumes/Slim_Reaper/Projects/Language_MVPA/code/src/cosmo-mpva/mvpa_plot_functions.R')
 
@@ -141,7 +159,7 @@ for(i in seq_along(roi_list)){
 ```
 
 
-POINT PLOTS WITH 1 FUNCTION FOR BOTH GROUPS! 
+TEST POINT PLOTS WITH 1 FUNCTION FOR BOTH GROUPS! 
 ```{r}
 source('/Volumes/Slim_Reaper/Projects/Language_MVPA/code/src/cosmo-mpva/mvpa_plot_functions.R')
 
@@ -163,54 +181,5 @@ for(i in seq_along(roi_list)){
 
 
 
-SAVE THE BAR PLOTS
-```{r}
-fig_dir <- paste(roi_file_dir, 'R_roi_plots/', sep = '/')
-
-#Create an output dir - if it already exists R only prints a warning!
-dir.create(fig_dir)
-
-#Overrride the ggsave function to use white bg
-ggsave <- function(..., bg = 'white') ggplot2::ggsave(..., bg = bg)
-
-#List TMS grid plots
-ggplot_bar_list <- Filter(function(x) is(x, "ggplot"), mget(ls(pattern = "^plot.bar.roi.*")))
-bar_plot_list <- ls(pattern = "^plot.bar.*")
-
-#Loop across main grids
-for(i in seq_along(ggplot_bar_list)) {
-
-        ggsave(filename = paste0(fig_dir, bar_plot_list[i], ".tiff"),
-               plot = ggplot_bar_list[[i]],
-               units = "px",
-               height = 320,
-               width = 740,
-               dpi = 300,
-               scale = 3.5)
-}
-```
-
-SAVE THE POINT PLOTS (comment out if not necesary)
-```{r}
-fig_dir <- paste(roi_file_dir, 'R_roi_plots/', sep = '/')
-
-#Overrride the ggsave function to use white bg
-ggsave <- function(..., bg = 'white') ggplot2::ggsave(..., bg = bg)
-
-#List TMS grid plots
-ggplot_bar_list <- Filter(function(x) is(x, "ggplot"), mget(ls(pattern = "^plot.point.roi.*")))
-bar_plot_list <- ls(pattern = "^plot.point.roi.*")
-
-#Loop across main grids
-for(i in seq_along(ggplot_bar_list)) {
-
-        ggsave(filename = paste0(fig_dir, bar_plot_list[i], ".tiff"),
-               plot = ggplot_bar_list[[i]],
-               units = "px",
-               height = 320,
-               width = 740,
-               dpi = 300,
-               scale = 3.5)
-}
-```
+Maybe add plot saving?
 

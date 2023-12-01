@@ -42,7 +42,7 @@ opt.cosmomvpa.funcFWHM = 2; %changed from 0
 %opt.cosmomvpa.ROIlabel = 'cVWFA';
 %opt.cosmomvpa.ROIlist = {};
 opt.cosmomvpa.space = 'MNI';
-opt.cosmomvpa.ROIlabel = 'JuBrain'; % 'visfatlas' 'hcpex'
+opt.cosmomvpa.ROIlabel = 'cVWFA'; % 'JuBrain' 'visfatlas' 'hcpex' 'cVWFA'
     switch opt.cosmomvpa.ROIlabel
         case 'visfatlas'
             opt.cosmomvpa.ROIlist = {'IOS','pOTS','v1combined'}; %based on visfatlas
@@ -50,10 +50,12 @@ opt.cosmomvpa.ROIlabel = 'JuBrain'; % 'visfatlas' 'hcpex'
             opt.cosmomvpa.ROIlist = {'Broca','STSa','STSp'}; %based on visfatlas
         case 'JuBrain'
             opt.cosmomvpa.ROIlist = {'Broca', 'FG2', 'FG4', 'MTG', 'V1'};
+        case 'cVWFA'
+            opt.cosmomvpa.ROIlist = {'cVWFA'};
     end
 opt.cosmomvpa.modalities = {'reading', 'speech'}; %does this have to be compatibile with BIDS models/conditions?
 opt.cosmomvpa.conditions = {'WordPseudoword','WordControl', 'PseudowordControl'};
-opt.cosmomvpa.mvpa = 'unimodal'; %unimodal / crossmodal
+opt.cosmomvpa.mvpa = 'crossmodal'; %unimodal / crossmodal
 opt.taskName = 'MultimodalReadSpeech';
 opt.dir.statsTask = 'task-MultimodalReadSpeech_space-IXI549Space_FWHM-2_node-mvpa6betas';
 opt.cosmomvpa.pathOutput = fullfile(opt.dir.derivatives, 'cosmo-mvpa', opt.dir.statsTask, [opt.cosmomvpa.ROIlabel,'_all_voxels'], opt.cosmomvpa.mvpa);
@@ -110,7 +112,7 @@ accuGroup = struct( ...
             accuGroup(count).roiNbVoxels = accu(iRow).roiNbVoxels;
             accuGroup(count).ffxResults = accu(iRow).ffxResults;
             accuGroup(count).conditions = accu(iRow).conditions;
-            accuGroup(count).modality = accu(iRow).modality;
+        %accuGroup(count).modality = accu(iRow).modality;
             accuGroup(count).accuracy = accu(iRow).accuracy;
             accuGroup(count).permutation = accu(iRow).permutation;
             accuGroup(count).pValue = accu(iRow).pValue;

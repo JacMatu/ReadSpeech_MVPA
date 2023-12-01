@@ -24,13 +24,13 @@ for iSub = 1:numel(opt.subjects)
         opt.query.atlas = opt.cosmomvpa.ROIlabel;
         opt.query.space = 'MNI';
         opt.query.desc = ''; %take only ROIs without desc-groupmasked!
-   else 
+   elseif strcmp(opt.cosmomvpa.ROInature, 'sphere') 
         opt.query = [];
         opt.query.sub = opt.subjects{iSub};
         opt.query.modality = 'roi';
         opt.query.suffix = 'mask';
         opt.query.radius = [num2str(opt.cosmomvpa.roiDimension),'mm'];
-        %opt.query.label = opt.cosmomvpa.ROIlabel;
+        opt.query.label = opt.cosmomvpa.ROIlabel;
         opt.query.space = opt.cosmomvpa.space;
     end
     opt.cosmomvpa.roiFileNames = bids.query(BIDS, 'data', ...
@@ -364,6 +364,8 @@ for iSub = 1:numel(opt.subjects)
     
     writetable(struct2table(accu), savefileCsv)
     
+    save(matName, 'accu');
+   
 end
 
 end

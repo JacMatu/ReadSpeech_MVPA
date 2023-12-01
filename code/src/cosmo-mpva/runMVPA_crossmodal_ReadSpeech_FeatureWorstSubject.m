@@ -22,16 +22,16 @@ end
 %% MVPA settings
 opt.cosmomvpa.funcFWHM = 2; %changed from 0
 opt.cosmomvpa.space = 'IXI549Space'; %preproc/normalisation space
-opt.cosmomvpa.ROInature = 'atlas'; %'atlas' or 'sphere'
-%opt.cosmomvpa.ROIlabel = 'cVWFA'; %changed from 'MT' other labels to test: aVWFA, cVWFA, pVWFA, perVWFA
+opt.cosmomvpa.ROInature = 'sphere'; %'atlas' or 'sphere'
+opt.cosmomvpa.ROIlabel = 'cVWFA'; %changed from 'MT' other labels to test: aVWFA, cVWFA, pVWFA, perVWFA
 %opt.cosmomvpa.ROIlabel = 'LexPerVWFA';
 %opt.cosmomvpa.ROIlabel = 'visfatlas';
 %opt.cosmomvpa.ROIlabel = 'hcpex';
-opt.cosmomvpa.ROIlabel = 'JuBrain';
+%opt.cosmomvpa.ROIlabel = 'JuBrain';
 
 % set which ROI sphere dimension (mm) to use
 %opt.cosmomvpa.roiDimension = [ 7 ]; % specify different sphere radiuses if you have them, e.g. [7,10,15...]
-opt.cosmomvpa.roiDimension = [ 10 ];
+opt.cosmomvpa.roiDimension = 12;
 
 % RATIO TO KEEP, THIS IS A BIG ONE! 
 % Sooooo this assumes that ths script was first ran with ratioToKeep = 1; 
@@ -47,8 +47,9 @@ opt.cosmomvpa.roiDimension = [ 10 ];
 %5. V1 = 816
 % Basic idea here is to specify these as cell and then let the
 % crossvalidation script read it for each ROI in a loop! 
-opt.cosmomvpa.ratioToKeep = [198 77 120 321 816]; 
-%opt.cosmomvpa.ratioToKeep = 0.1; 
+%opt.cosmomvpa.ratioToKeep = [198 77 120 321 816]; 
+
+opt.cosmomvpa.ratioToKeep = 168;  %worst subject for cVWFA 12mm sphere!
 
 
 %opt.cosmomvpa.ratioToKeep = 1; %watch out, with this ROI not all people have the same n of voxels
@@ -109,7 +110,7 @@ end
       '06','07','08','09','10','11','12',...
       '13','14','15','16','17','18','19','20'}; 
 
-%subNum = {'01'};
+% subNum = {'01'};
 %List the groups
 group = {'blind','sighted'};
 
@@ -125,7 +126,7 @@ end
 % Initial tests say beta is better, but maybe plot it against T MAPS also? 
 opt.cosmomvpa.ffxResults = {'beta'};%{'beta'}; 
 
-cosmomvpaRoiCrossValidation_ReadSpeech_unimodal(opt); % ADJUSTED?
+cosmomvpaRoiCrossValidation_ReadSpeech_crossmodal(opt); % ADJUSTED?
 
 % set which type of ffx results you want to use
 %opt.cosmomvpa.ffxResults = {'tmap'};

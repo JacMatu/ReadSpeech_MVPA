@@ -71,7 +71,7 @@ crossmodal_mvpa_plot_ReadSpeech <- function(plot_data, summary_data){
                                                    dodge.width = 0.9)) +
         
         #scale_alpha_manual(values = c(0.2,0.8, 0.2), 
-        scale_alpha_manual(values = c(0.95,0.95, 0.95), 
+        scale_alpha_manual(values = c(0.95,0.8, 0.95), 
                            name = "Decoding partitions") +
         # scale_color_manual(values = c(rep(dark_colors[1], 3)),
         #scale_color_manual(values = blind_triple_colors,
